@@ -1,0 +1,62 @@
+{
+  "name": "@aemvite/vite-plugin-aem-resources",
+  "version": "0.1.0",
+  "description": "Vite plugin that copies an AEM clientlib resources/ tree into the build output, skipping .gitkeep-only / empty sources.",
+  "keywords": [
+    "aem",
+    "clientlib",
+    "vite",
+    "vite-plugin",
+    "resources",
+    "copy",
+    "edge-delivery",
+    "aemvite"
+  ],
+  "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
+  "bugs": {
+    "url": "https://github.com/LucaNerlich/aem-vite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LucaNerlich/aem-vite.git",
+    "directory": "packages/vite-plugin-aem-resources"
+  },
+  "license": "MIT",
+  "author": "Luca Nerlich",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vite": "^7 || ^8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3",
+    "vite": "8.1.0",
+    "vitest": "4.1.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

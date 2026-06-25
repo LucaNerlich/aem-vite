@@ -1,0 +1,69 @@
+{
+  "name": "@aemvite/aem-config",
+  "version": "0.1.0",
+  "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
+  "keywords": [
+    "aem",
+    "clientlib",
+    "vite",
+    "config",
+    "edge-delivery",
+    "aemvite",
+    "build",
+    "orchestrator"
+  ],
+  "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
+  "bugs": {
+    "url": "https://github.com/LucaNerlich/aem-vite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LucaNerlich/aem-vite.git",
+    "directory": "packages/aem-config"
+  },
+  "license": "MIT",
+  "author": "Luca Nerlich",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "aem-build": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@aemvite/vite-plugin-aem-clientlib": "^0.1.0"
+  },
+  "peerDependencies": {
+    "vite": "^7 || ^8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3",
+    "vite": "8.1.0",
+    "vitest": "4.1.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
