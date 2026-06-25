@@ -1,0 +1,7 @@
+{
+    "scripts": [
+        "create path (sling:OrderedFolder) /content/dam/aemvite",
+        "create path (nt:unstructured) /content/dam/aemvite/jcr:content",
+        "set properties on /content/dam/aemvite/jcr:content\n  set cq:conf{String} to /conf/aemvite\n  set jcr:title{String} to \"aem-vite\"\nend"
+    ]
+}
