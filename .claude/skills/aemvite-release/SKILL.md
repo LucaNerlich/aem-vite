@@ -1,11 +1,11 @@
 ---
 name: aemvite-release
-description: Full release automation for the @aemvite monorepo — bumps all five package versions in unison, updates cross-dependency ranges, updates changelogs (root + per-package), updates version references in README.md and MIGRATION.md, commits, tags, pushes, and creates a GitHub release. Use this skill whenever the user says "release", "bump version", "cut a release", "new version", "tag a release", "prep a release", "ship it", or asks to publish the aemvite packages. Also trigger when the user mentions semver, changelog, or version bump in the context of this monorepo.
+description: Full release automation for the @aemvite monorepo — bumps all six package versions in unison, updates cross-dependency ranges, updates changelogs (root + per-package), updates version references in README.md and MIGRATION.md, commits, tags, pushes, and creates a GitHub release. Use this skill whenever the user says "release", "bump version", "cut a release", "new version", "tag a release", "prep a release", "ship it", or asks to publish the aemvite packages. Also trigger when the user mentions semver, changelog, or version bump in the context of this monorepo.
 ---
 
 # aemvite-release
 
-Full release automation for the `@aemvite/*` monorepo. All five packages always move to the same version in one shot — this matches how CI publishes them (atomically, on a single `v*` tag).
+Full release automation for the `@aemvite/*` monorepo. All six packages always move to the same version in one shot — this matches how CI publishes them (atomically, on a single `v*` tag).
 
 ## Packages released (unified versioning)
 
@@ -16,6 +16,7 @@ Full release automation for the `@aemvite/*` monorepo. All five packages always 
 | `@aemvite/vite-plugin-glob` | `packages/vite-plugin-glob/` |
 | `@aemvite/vite-plugin-aem-resources` | `packages/vite-plugin-aem-resources/` |
 | `@aemvite/vite-plugin-aem-css-url-passthrough` | `packages/vite-plugin-aem-css-url-passthrough/` |
+| `@aemvite/vite-plugin-aem-handlebars` | `packages/vite-plugin-aem-handlebars/` |
 
 ---
 
@@ -39,6 +40,7 @@ node -p "require('./packages/vite-plugin-aem-clientlib/package.json').version"
 node -p "require('./packages/vite-plugin-glob/package.json').version"
 node -p "require('./packages/vite-plugin-aem-resources/package.json').version"
 node -p "require('./packages/vite-plugin-aem-css-url-passthrough/package.json').version"
+node -p "require('./packages/vite-plugin-aem-handlebars/package.json').version"
 ```
 
 Find the last release tag and collect commits since then:
@@ -74,7 +76,7 @@ Show the user the proposed bump level and the new version string and **confirm b
 
 ---
 
-## Step 4 — Bump all five `package.json` versions
+## Step 4 — Bump all six `package.json` versions
 
 **Important:** Do NOT use `npm version` at the workspace root — the `pnpm` shim intercepts it and behaves incorrectly (see CLAUDE.md). Instead, `cd` into each package directory separately:
 
@@ -86,13 +88,14 @@ Show the user the proposed bump level and the new version string and **confirm b
 (cd packages/vite-plugin-glob                  && npm version <bump> --no-git-tag-version --force)
 (cd packages/vite-plugin-aem-resources         && npm version <bump> --no-git-tag-version --force)
 (cd packages/vite-plugin-aem-css-url-passthrough && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-handlebars          && npm version <bump> --no-git-tag-version --force)
 ```
 
 > **Note:** `--no-git-tag-version` alone is not enough when the tree is dirty — npm still exits non-zero. `--force` suppresses that check; it is safe here because we never let npm create a tag (the skill handles tagging explicitly in Step 9).
 >
 > **Fallback:** If `npm version` continues to fail (e.g. pnpm shim interference), edit the `"version"` field in each `package.json` directly with the Edit tool — it is equivalent and always reliable.
 
-Verify that all four files now show the new version:
+Verify that all six files now show the new version:
 
 ```bash
 grep '"version"' packages/*/package.json
@@ -104,11 +107,12 @@ grep '"version"' packages/*/package.json
 
 ### `packages/aem-config/package.json` — plugin deps
 
-`packages/aem-config/package.json` declares all four plugin packages as `dependencies`. Update all their version ranges to `^<new-version>`:
+`packages/aem-config/package.json` declares all five plugin packages as `dependencies`. Update all their version ranges to `^<new-version>`:
 
 ```json
 "@aemvite/vite-plugin-aem-clientlib": "^<new-version>",
 "@aemvite/vite-plugin-aem-css-url-passthrough": "^<new-version>",
+"@aemvite/vite-plugin-aem-handlebars": "^<new-version>",
 "@aemvite/vite-plugin-aem-resources": "^<new-version>",
 "@aemvite/vite-plugin-glob": "^<new-version>",
 ```
@@ -152,7 +156,7 @@ Rules:
 
 ### Per-package `CHANGELOG.md` files
 
-Update each of the four per-package changelogs with a matching entry. Attribute commits to packages where it is clear (e.g. a fix in `vite-plugin-glob/` goes only in that package's changelog). For changes that span multiple packages, include the entry in all relevant package changelogs. Preserve the existing style in each file.
+Update each of the five per-package changelogs with a matching entry. Attribute commits to packages where it is clear (e.g. a fix in `vite-plugin-glob/` goes only in that package's changelog). For changes that span multiple packages, include the entry in all relevant package changelogs. Preserve the existing style in each file.
 
 Per-package changelog paths:
 - `packages/aem-config/CHANGELOG.md`
@@ -160,6 +164,7 @@ Per-package changelog paths:
 - `packages/vite-plugin-glob/CHANGELOG.md`
 - `packages/vite-plugin-aem-resources/CHANGELOG.md`
 - `packages/vite-plugin-aem-css-url-passthrough/CHANGELOG.md`
+- `packages/vite-plugin-aem-handlebars/CHANGELOG.md`
 
 ---
 
@@ -176,7 +181,7 @@ grep -n "0\.[0-9]*\.[0-9]*" README.md | grep -v "^Binary"
 
 1. **Install / adopter example** — the code block showing the recommended `package.json` snippet for consumers. Update `"@aemvite/aem-config": "^<old>"` → `"@aemvite/aem-config": "^<new>"`.
 
-2. **Status / versions table** — typically near the bottom of the README, lists each package and its current version. Update all four package version strings.
+2. **Status / versions table** — typically near the bottom of the README, lists each package and its current version. Update all five package version strings.
 
 ### `MIGRATION.md`
 
@@ -195,6 +200,7 @@ git add \
   packages/vite-plugin-glob/package.json \
   packages/vite-plugin-aem-resources/package.json \
   packages/vite-plugin-aem-css-url-passthrough/package.json \
+  packages/vite-plugin-aem-handlebars/package.json \
   aemviteexample/ui.frontend/package.json \
   CHANGELOG.md \
   packages/aem-config/CHANGELOG.md \
@@ -202,6 +208,7 @@ git add \
   packages/vite-plugin-glob/CHANGELOG.md \
   packages/vite-plugin-aem-resources/CHANGELOG.md \
   packages/vite-plugin-aem-css-url-passthrough/CHANGELOG.md \
+  packages/vite-plugin-aem-handlebars/CHANGELOG.md \
   README.md \
   MIGRATION.md
 
@@ -253,8 +260,8 @@ After all steps complete, print:
 ```
 Released v<new-version>
   Bump:       <patch|minor>
-  Packages:   aem-config, vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources, vite-plugin-aem-css-url-passthrough
-  Changelogs: root + 5 per-package
+  Packages:   aem-config, vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources, vite-plugin-aem-css-url-passthrough, vite-plugin-aem-handlebars
+  Changelogs: root + 6 per-package
   Docs:       README.md, MIGRATION.md
   Commit:     <short-sha>
   Tag:        v<new-version>
