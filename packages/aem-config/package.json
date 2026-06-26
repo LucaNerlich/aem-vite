@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/aem-config",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
   "keywords": [
     "aem",

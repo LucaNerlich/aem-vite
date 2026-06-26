@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-06-26
+
+### Added
+- `aemviteexample/` — a second minimal reference consumer project that installs only `@aemvite/aem-config` (peer deps auto-resolved), useful as a before/after migration comparison.
+
+### Fixed
+- `MIGRATION.md` now includes an exact `pom.xml` diff for upgrading `frontend-maven-plugin` from the archetype-default Node v16 to v22.12.0/npm 10.9.0.
+
+### Changed
+- `.gitignore` extended to exclude `dist/` under both `aemviteexample/` and `aemvite/` example directories.
+
 ## [0.3.0] - 2026-06-26
 
 ### Changed

@@ -470,10 +470,29 @@ archetype's wiring is already correct:
 </plugin>
 ```
 
-You do **not** need to touch this. Just make sure the bundled Node version
-in your `<nodeVersion>` (or the parent `frontend-maven-plugin` config) is
-`^20.19.0 || >=22.12.0` — Vite 8 will refuse older Node. The reference repo
-pins `v22.12.0`.
+The `<execution>` wiring stays untouched. **But the bundled Node version
+almost certainly needs a bump** — the AEM Maven archetype historically pins
+`v16.x` (e.g. `v16.17.0` with `npm@8.15.0`), and Vite 8 refuses to install
+on anything older than `^20.19.0 || >=22.12.0`. Find the
+`frontend-maven-plugin` `<configuration>` block (usually in the **parent
+`pom.xml`** under `<pluginManagement>`, not in `ui.frontend/pom.xml`) and
+update it:
+
+```diff
+ <plugin>
+   <groupId>com.github.eirslett</groupId>
+   <artifactId>frontend-maven-plugin</artifactId>
+   <configuration>
+-    <nodeVersion>v16.17.0</nodeVersion>
+-    <npmVersion>8.15.0</npmVersion>
++    <nodeVersion>v22.12.0</nodeVersion>
++    <npmVersion>10.9.0</npmVersion>
+   </configuration>
+```
+
+The reference repo pins `v22.12.0` / `10.9.0`. Once changed, delete the
+locally cached `ui.frontend/node/` directory (if present) so the new Node
+gets downloaded on the next Maven build.
 
 Sanity check:
 

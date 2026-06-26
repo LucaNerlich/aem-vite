@@ -1,0 +1,22 @@
+{
+  "name": "aemviteexample.ui.frontend",
+  "version": "1.0.0",
+  "description": "AEM ui.frontend module built with Vite + @aemvite",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "type": "module",
+  "scripts": {
+    "dev": "aem-build --mode dev --config aem.config.mjs",
+    "prod": "aem-build --mode prod --config aem.config.mjs"
+  },
+  "devDependencies": {
+    "@aemvite/aem-config": "file:../../packages/aem-config",
+    "sass": "^1.101.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {}
+}
