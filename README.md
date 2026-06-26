@@ -15,6 +15,11 @@ Experience Manager (AEM) `ui.frontend` Maven module replace the legacy
 output. AEM dispatcher, replication, Cloud Manager, and downstream caches see
 exactly the same files — only the build that produces them changes.
 
+> **Migrating an existing webpack archetype `ui.frontend`?** See the
+> step-by-step, archetype-specific [Migration Guide](./MIGRATION.md) — exact
+> uninstall command, file-by-file delete list, and a verified before/after
+> against the OOTB AEM Maven archetype.
+
 ## Packages
 
 Each package name links to its npm page; the source for every package lives
@@ -168,19 +173,22 @@ Run these inside `ui.frontend/` (the module that owns `package.json`):
 ```sh
 # Just the entry-point package. @aemvite/aem-config depends on the three plugin
 # packages (clientlib emitter, glob, resources), so they install transitively —
-# you do not list them yourself.
+# you do not list them yourself. It also declares `esbuild` as a peer dep
+# (range ^0.27.0 || ^0.28.0), so npm 7+ / pnpm 8+ auto-install it. Yarn
+# classic users must add it manually: `npm install --save-dev esbuild@^0.28.0`.
 npm install --save-dev @aemvite/aem-config
 
-# Required peers. Vite 8 treats `esbuild` as an OPTIONAL peer, so install it
-# explicitly — without it the build fails with `Cannot find package 'esbuild'`.
-npm install --save-dev vite@^8 esbuild@^0.28.0
+# Required peer — declare this one yourself.
+npm install --save-dev vite@^8
 
 # Only if any clientlib entry imports .scss/.sass — plain CSS doesn't need it
 npm install --save-dev sass
 ```
 
-If your build needs an AEM publish/watch loop, also keep `aemsync` (the
-reference uses `aemsync@^5.2.1`). It is independent of the build toolchain.
+If your build needs an AEM publish/watch loop, also install `aemsync` (the
+archetype pinned `^4.0.1`). It is independent of the build toolchain — the
+reference `aemvite/ui.frontend` in this repo drops it because it doesn't use
+that loop; keep or drop based on your own workflow.
 
 A published-package consumer's `ui.frontend/package.json` ends up this small:
 
@@ -188,12 +196,12 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.2.0", // pulls the three plugin packages in
-    "aemsync": "^5.2.1",
-    "esbuild": "^0.28.1",
+    "@aemvite/aem-config": "^0.2.2", // pulls the three plugin packages + esbuild peer
     "sass":    "^1.77.0",
     "vite":    "^8.1.0",
     "vitest":  "^4.1.9"
+    // add "aemsync" here too if you keep the sync/watch loop
+    // add "esbuild" only on yarn classic (other PMs auto-install the peer)
   }
 }
 ```
@@ -533,9 +541,10 @@ fixture). To verify in your own project before deleting the old build:
   (`@aemvite/vite-plugin-aem-clientlib` is the exception — see its
   [README](./packages/vite-plugin-aem-clientlib#install)). Install
   `vite@^8` explicitly as a devDependency in `ui.frontend/`.
-- **`Error: Cannot find package 'esbuild'`** during `npm run prod`. Vite 8
-  declares `esbuild` as an OPTIONAL peer dependency (range `^0.27.0 || ^0.28.0`),
-  so a clean `npm install` will not pull it in. Add it explicitly:
+- **`Error: Cannot find package 'esbuild'`** during `npm run prod`. `esbuild`
+  is a peer dependency of `@aemvite/aem-config` (range
+  `^0.27.0 || ^0.28.0`), auto-installed by npm 7+ and pnpm 8+. If you use
+  yarn classic, or pnpm with `auto-install-peers=false`, add it manually:
   `npm install --save-dev esbuild@^0.28.0`.
 - **`Unknown --mode 'release'` (or similar) from `aem-build`.** Only
   `dev`, `prod`, `development`, and `production` are accepted.

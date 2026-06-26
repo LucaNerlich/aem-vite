@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2026-06-26
+
+### Added
+- `MIGRATION.md` — step-by-step guide for porting a stock AEM Maven archetype `ui.frontend` from webpack to `@aemvite/*`, with exact uninstall commands, file delete list, and verified before/after state.
+
+### Fixed
+- `@aemvite/aem-config` now declares `esbuild ^0.27.0 || ^0.28.0` as a **required** peer dependency. Vite 8 demoted it to an optional peer, so `npm install @aemvite/aem-config` previously left `esbuild` uninstalled, causing `Cannot find package 'esbuild'` on the first `aem-build --mode prod` run.
+
+### Changed
+- CI: publish workflow now builds workspaces in dependency order so `@aemvite/aem-config` resolves the plugin package types during compilation.
+
 ## [0.2.1] - 2026-06-26
 
 ### Changed
