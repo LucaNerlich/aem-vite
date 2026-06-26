@@ -26,7 +26,7 @@ npm i -D sass
 
 - **Peer dependency:** `vite` `^7 || ^8` (with Vite 8 also requires `esbuild` `^0.27.0 || ^0.28.0` — Vite declares it as an optional peer, so consumers must install it explicitly)
 - **Engines:** Node `^20.19.0 || >=22.12.0`
-- Depends on `@aemvite/vite-plugin-aem-clientlib` (installed automatically).
+- Depends on all three plugin packages — `@aemvite/vite-plugin-aem-clientlib`, `@aemvite/vite-plugin-glob`, `@aemvite/vite-plugin-aem-resources` — all installed automatically.
 
 ## What it does
 
@@ -36,10 +36,19 @@ npm i -D sass
   pre-compile step.
 - Resolves per-clientlib build options (`minify`, `sourcemap`, `target`) in
   three layers: mode baseline → global → per-clientlib.
-- Runs one Vite library build per entry with `inlineDynamicImports: true`
-  into a shared `outDir`, then triggers the clientlib descriptor emitter.
+- Runs one Vite library build per entry with `inlineDynamicImports: true`,
+  automatically wiring `@aemvite/vite-plugin-glob` (SCSS/CSS glob expansion)
+  and `@aemvite/vite-plugin-aem-resources` (resources copy). Descriptor-only
+  clientlibs (`entry: ''`) skip the Vite build entirely but still emit their
+  `.content.xml` / `js.txt` / `css.txt`.
+- Names outputs after the clientlib (`<name>.js` / `<name>.css`) so the emitted
+  `js.txt` / `css.txt` are byte-identical to the AEM archetype golden reference.
+- Accepts optional `plugins` / `vite` passthrough in the config so advanced
+  adopters never need to write a custom build script (see
+  [Plugin and Vite config passthrough](#plugin-and-vite-config-passthrough)).
 - Ships an `aem-build` CLI you can call from `npm` scripts (so Maven's
-  `frontend-maven-plugin` stays unchanged).
+  `frontend-maven-plugin` stays unchanged). See
+  [CLI: `aem-build`](#cli-aem-build) for where the binary comes from.
 
 ## Quick start
 
@@ -92,6 +101,8 @@ Wire it into `package.json`:
 | `clientlibs` | `AemClientlib[]` | — | One entry per clientlib folder. |
 | `defaults` | `Partial<AemClientlib>` | `{}` | Per-clientlib defaults merged into every entry (per-clientlib values win). |
 | `build` | `BuildOptions` | `{}` | Global build overrides; layered under per-clientlib `build` (see below). |
+| `plugins` | `PluginOption \| PluginOption[]` | _(none)_ | Extra Vite plugins injected into **every** clientlib build (after the built-in glob + resources plugins). |
+| `vite` | `UserConfig` | _(none)_ | Deep Vite config merged (via `mergeConfig`) into every clientlib build — runs after per-entry wiring and after `plugins`. |
 
 ### `AemClientlib`
 
@@ -108,6 +119,8 @@ Wire it into `package.json`:
 | `cssProcessor` | `readonly string[]` | `["default:none","min:none"]` | AEM CSS processor directives. |
 | `jsProcessor` | `readonly string[]` | `["default:none","min:none"]` | AEM JS processor directives. |
 | `build` | `BuildOptions` | `{}` | Per-clientlib build overrides; layered over `AemConfig.build`. |
+| `plugins` | `PluginOption \| PluginOption[]` | _(inherits global)_ | Extra Vite plugins for this clientlib only (appended after the global `plugins`). |
+| `vite` | `UserConfig` | _(inherits global)_ | Per-clientlib deep Vite config override (merged after the global `vite`). |
 
 Array fields (`cssProcessor`, `jsProcessor`, `dependencies`, `embed`,
 `categories`, `resources`) are replaced wholesale rather than concatenated when
@@ -214,11 +227,10 @@ All exports from `@aemvite/aem-config`:
 | Export | Signature | Effect |
 |---|---|---|
 | `defineAemConfig` | `(config: AemConfig) => AemConfig` | Typed identity helper for `aem.config.ts`. |
-| `loadAemConfig` | `(path: string) => Promise<ResolvedAemConfig>` | Load a `.ts`/`.mts`/`.cts` config via Vite's bundled esbuild (`loadConfigFromFile`), or a `.js`/`.mjs` config via dynamic `import()`. Merges defaults before returning. |
+| `loadAemConfig` | `(path: string) => Promise<ResolvedAemConfig>` | Load a `.ts`/`.mts`/`.cts` config via Vite's bundled esbuild (`loadConfigFromFile`), or a `.mjs`/`.js` config via dynamic `import()`. Merges defaults before returning. |
 | `mergeDefaults` | `(config: AemConfig) => ResolvedAemConfig` | Apply package + user `defaults` to every clientlib. |
 | `resolveBuildOptions` | `(mode: BuildMode, global?: BuildOptions, perClientlib?: BuildOptions) => ResolvedBuildOptions` | Resolve the three-layer build options for a single clientlib. Exported for tooling and tests. |
-| `buildClientlibs` | `(options: BuildClientlibsOptions & { emitter?: ClientlibEmitter \| null }) => Promise<{ config: ResolvedAemConfig; outDir: string }>` | Run one Vite library build per entry into `outDir`, then invoke the clientlib emitter. Pass `emitter: null` to skip emission (e.g. in tests). |
-| `resolveClientlibEmitter` | `() => Promise<ClientlibEmitter \| null>` | Optionally resolve the emitter from `@aemvite/vite-plugin-aem-clientlib`. Returns `null` if not installed. |
+| `buildClientlibs` | `(options: BuildClientlibsOptions) => Promise<{ config: ResolvedAemConfig; outDir: string }>` | Fully-orchestrated build: wires glob + resources plugins, runs one Vite library build per entry, names outputs after the clientlib, calls the clientlib emitter. Descriptor-only clientlibs skip the Vite build. |
 
 ### Constants
 
@@ -231,8 +243,7 @@ All exports from `@aemvite/aem-config`:
 ### Types
 
 `AemConfig`, `AemClientlib`, `BuildOptions`, `BuildMode`, `BuildClientlibsOptions`,
-`ProcessorList`, `ResolvedAemClientlib`, `ResolvedAemConfig`,
-`ResolvedBuildOptions`, `ClientlibEmitter`, `ClientlibEmitterInput`.
+`ProcessorList`, `ResolvedAemClientlib`, `ResolvedAemConfig`, `ResolvedBuildOptions`.
 
 ## CLI: `aem-build`
 
@@ -243,8 +254,8 @@ Options:
   --mode, -m  <dev|prod|development|production>   Build mode (default: production)
   --config, -c <path>                             Path to aem.config.ts
                                                   (default: ./aem.config.ts,
-                                                   then .mts, then .js)
-  --out-dir, -o <path>                            Output directory
+                                                   then .mts, .mjs, .js)
+  --out-dir, -o <path>                            Staging directory
                                                   (default: ./dist)
   -h, --help                                      Show help
 ```
@@ -252,6 +263,115 @@ Options:
 Both shorthand (`dev`/`prod`) and full (`development`/`production`) mode names
 are accepted. The CLI exits with code `1` and prints the error stack on any
 failure.
+
+### Where does `aem-build` come from?
+
+`@aemvite/aem-config/package.json` declares:
+
+```json
+{
+  "bin": {
+    "aem-build": "dist/cli.js"
+  }
+}
+```
+
+When you run `npm install`, npm creates a symlink
+`node_modules/.bin/aem-build → ../aemvite/aem-config/dist/cli.js`. Scripts in
+`package.json` are run with `node_modules/.bin` on the `PATH`, so `aem-build`
+in an npm script just works:
+
+```json
+{
+  "scripts": {
+    "prod": "aem-build --mode prod --config aem.config.mjs"
+  }
+}
+```
+
+You can also call it directly with `npx aem-build ...` without installing
+anything first.
+
+## Plugin and Vite config passthrough
+
+`@aemvite/aem-config` 0.2.0 added optional `plugins` and `vite` fields to
+both `AemConfig` (global) and `AemClientlib` (per-clientlib). These let you
+inject Vite plugins or deep config overrides without writing a custom build
+script.
+
+**When to use it:**
+- Inject a framework plugin (e.g. React, Vue, Lit) for all clientlibs.
+- Add `resolve.alias` entries so `@/` resolves to your `src/` root.
+- Turn on `build.cssCodeSplit` for one specific clientlib.
+- Use a custom transform plugin for a single entry.
+
+**Resolution order** inside each Vite build:
+
+1. Built-in `aemViteGlob()` (SCSS glob expansion — always first)
+2. Built-in `aemResources(...)` (resources copy — when `resources` is set)
+3. Global `config.plugins` (applied to every clientlib)
+4. Per-clientlib `clientlib.plugins` (appended for that clientlib only)
+5. Global `config.vite` merged via `mergeConfig`
+6. Per-clientlib `clientlib.vite` merged via `mergeConfig`
+
+### Global plugin example
+
+```js
+// aem.config.mjs
+import { defineAemConfig } from '@aemvite/aem-config';
+import myFrameworkPlugin from 'some-vite-plugin';
+
+export default defineAemConfig({
+  clientLibRoot: '../ui.apps/.../clientlibs',
+  plugins: [myFrameworkPlugin()],          // runs for every clientlib
+  clientlibs: [
+    { name: 'site', entry: 'src/main.ts', categories: ['myproject.site'] },
+    { name: 'admin', entry: 'src/admin.ts', categories: ['myproject.admin'] },
+  ],
+});
+```
+
+### Global Vite config override (e.g. aliases)
+
+```js
+export default defineAemConfig({
+  clientLibRoot: '../ui.apps/.../clientlibs',
+  vite: {
+    resolve: {
+      alias: { '@': '/src/main/webpack' },
+    },
+  },
+  clientlibs: [ /* … */ ],
+});
+```
+
+### Per-clientlib override
+
+```js
+export default defineAemConfig({
+  clientLibRoot: '../ui.apps/.../clientlibs',
+  plugins: [sharedPlugin()],               // injected into every clientlib
+  clientlibs: [
+    {
+      name: 'site',
+      entry: 'src/main.ts',
+      categories: ['myproject.site'],
+      // Override only for this clientlib — appended after sharedPlugin()
+      plugins: [siteOnlyPlugin()],
+      vite: { build: { cssCodeSplit: false } },
+    },
+    {
+      name: 'admin',
+      entry: 'src/admin.ts',
+      categories: ['myproject.admin'],
+      // no per-clientlib plugins — only sharedPlugin() runs here
+    },
+  ],
+});
+```
+
+> `plugins` and `vite` are optional. If you don't need them, omit them — the
+> build works identically to 0.1.x with no config changes required.
 
 ## Notes & caveats
 

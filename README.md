@@ -60,11 +60,14 @@ under [`packages/`](./packages) in this repo.
 ```
 
 `@aemvite/aem-config` is the entry point — author your clientlibs in a typed
-`aem.config.ts`, run `aem-build`, and the orchestrator drives one Vite library
-build per entry into a shared `outDir`, then `@aemvite/vite-plugin-aem-clientlib`
-writes the descriptor files and lays out `js/`, `css/`, and `resources/`. The
-other two plugins slot into your `vite.config.*` (glob expansion) or your
-clientlib entry (resource copy) as needed.
+`aem.config.ts` (or `.mjs`), run `aem-build`, and the orchestrator drives one
+Vite library build per entry, automatically wiring `@aemvite/vite-plugin-glob`
+(SCSS/CSS glob expansion) and `@aemvite/vite-plugin-aem-resources` (resources
+copy). `@aemvite/vite-plugin-aem-clientlib` then writes the descriptor files and
+lays out `js/`, `css/`, and `resources/` — byte-identical to the AEM archetype.
+The three plugin packages install transitively; consumers only need
+`@aemvite/aem-config`. If you also run `vite` as a standalone dev server (`npm
+start`), wire `aemViteGlob()` into your `vite.config.*` plugins array too.
 
 ## Byte-identical descriptor guarantee
 
@@ -569,9 +572,9 @@ for every exposed API:
 
 ## Status & scope
 
-- All four packages: **`0.1.0`**, first public release. Independent unit
-  tests; `vite-plugin-aem-clientlib` asserts byte-identical descriptors against
-  the captured golden reference via `Buffer.equals()`.
+- **`@aemvite/aem-config`**: `0.2.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all three plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**: `0.1.0`.
+- `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output
   vs. the captured golden.
@@ -581,84 +584,54 @@ for every exposed API:
 
 ## Publishing to npm
 
-Maintainer reference for cutting a release of the four `@aemvite/*` packages
-to the public npm registry. The same sequence works for the first publish and
-for subsequent version bumps.
+Releases are fully automated via CI. To cut a release:
 
-### Prerequisites
+1. **Bump versions** in the relevant `packages/<name>/package.json` files.
+2. **Update `CHANGELOG.md`** at the repo root.
+3. **Push a `v*` tag** — the `.github/workflows/publish.yml` workflow triggers
+   and publishes in dependency order (clientlib → glob → resources → aem-config).
+   Each step is idempotent: if the exact `name@version` is already on the
+   registry, that step is skipped rather than hard-failing. The workflow uses
+   npm OIDC trusted publishing (no `NPM_TOKEN` or OTP required in CI).
 
-- An npm account with publish rights on the `@aemvite` organisation. The org
-  itself must exist at <https://www.npmjs.com/org/aemvite> — creating it is a
-  one-time manual step.
-- Logged in on this machine:
-
-  ```sh
-  npm login
-  npm whoami
-  ```
-
-- A 2FA device ready: npm prompts for a fresh OTP **per `npm publish`**, so
-  four prompts total. OTPs are short-lived (~30 s); if one expires you will
-  see `EOTP` and can simply re-run that single command.
+```sh
+git tag -a "v0.3.0" -m "v0.3.0"
+git push --tags
+```
 
 ### Publish order (and why it matters)
 
-Publish in dependency order so each later package can resolve its
-`@aemvite/*` dependency from the registry:
+`@aemvite/aem-config` depends on the three plugin packages, so they must be
+live on the registry before `aem-config` publishes. The CI workflow handles
+this automatically:
 
-1. **`@aemvite/vite-plugin-aem-clientlib`** — must go first; `aem-config`
-   declares `"@aemvite/vite-plugin-aem-clientlib": "^0.1.0"` and resolves it
-   from the public registry on install.
-2. **`@aemvite/vite-plugin-glob`** — independent, any order after step 1.
-3. **`@aemvite/vite-plugin-aem-resources`** — independent, any order after
-   step 1.
-4. **`@aemvite/aem-config`** — must go last (depends on step 1 being live).
+1. `@aemvite/vite-plugin-aem-clientlib`
+2. `@aemvite/vite-plugin-glob`
+3. `@aemvite/vite-plugin-aem-resources`
+4. `@aemvite/aem-config` — **last**
 
-### Commands (per-directory form, recommended)
+### Bumping a version
 
-Run from the monorepo root. Each `npm publish` triggers the package's
-`prepublishOnly` hook, which runs `npm run build` (`tsc`) — no separate
-build step is needed. Pass a fresh OTP each time:
+1. Edit the version in `packages/<name>/package.json` (patch / minor / major).
+2. Update `CHANGELOG.md` at the repo root.
+3. If the bumped package is a dependency of `@aemvite/aem-config` (all three
+   plugin packages are), check whether the range in `aem-config/package.json`
+   needs widening.
+4. Commit, then push a new `v*` tag — CI publishes automatically.
 
-```sh
-( cd packages/vite-plugin-aem-clientlib && npm publish --access public --otp=XXXXXX )
-( cd packages/vite-plugin-glob          && npm publish --access public --otp=XXXXXX )
-( cd packages/vite-plugin-aem-resources && npm publish --access public --otp=XXXXXX )
-( cd packages/aem-config                && npm publish --access public --otp=XXXXXX )
-```
+### Manual fallback
 
-### Workspace alternative
-
-The npm workspace form publishes the same tarballs from the repo root:
+If CI is unavailable, publish from the repo root in dependency order:
 
 ```sh
-npm publish --access public -w @aemvite/vite-plugin-aem-clientlib --otp=XXXXXX
-npm publish --access public -w @aemvite/vite-plugin-glob          --otp=XXXXXX
-npm publish --access public -w @aemvite/vite-plugin-aem-resources --otp=XXXXXX
-npm publish --access public -w @aemvite/aem-config                --otp=XXXXXX
+( cd packages/vite-plugin-aem-clientlib && command npm publish --access public )
+( cd packages/vite-plugin-glob          && command npm publish --access public )
+( cd packages/vite-plugin-aem-resources && command npm publish --access public )
+( cd packages/aem-config                && command npm publish --access public )
 ```
 
-**Gotcha:** the root `package.json` declares `"packageManager":
-"pnpm@10.33.4"`, which Corepack-aware shims can use to route `npm` through
-`pnpm`. `pnpm` silently ignores `npm`'s `-w <name>` form and publishes
-nothing. If you see that, either prefix with `command npm` (bypasses shims)
-or use the per-directory form above, which is immune to this.
-
-### Notes and gotchas
-
-- **`--access public` is required on the first publish** of each scoped
-  package; without it npm defaults scoped packages to `restricted` and
-  rejects with a paid-tier error. The `publishConfig.access: "public"` field
-  in each `package.json` also covers this, but the explicit flag is harmless.
-- **Fresh OTP per command.** OTPs are single-use and short-lived. On `EOTP`,
-  re-run that one command with a new code — earlier successful publishes are
-  not affected.
-- **No overwrites.** Re-running a publish for an already-published version
-  fails with `EPUBLISHCONFLICT`. To re-release you must bump the version
-  (see [Bumping a version](#bumping-a-version)).
-- **Brief CDN propagation.** Right after step 1, the `aem-config` publish
-  may fail to resolve `@aemvite/vite-plugin-aem-clientlib@^0.1.0` from the
-  registry CDN. Wait ~20 s and retry only the `aem-config` step.
+`command npm` bypasses any Corepack shim that might route `npm` through
+`pnpm` (pnpm silently ignores npm's `-w` form and publishes nothing).
 
 ### Verify after publishing
 
@@ -668,21 +641,6 @@ npm view @aemvite/vite-plugin-glob          version
 npm view @aemvite/vite-plugin-aem-resources version
 npm view @aemvite/aem-config                version
 ```
-
-All four should report `0.1.0` (or the new version you just published).
-
-### Bumping a version
-
-Per package you want to release:
-
-1. Edit `packages/<name>/package.json` and bump `version` (semver — patch /
-   minor / major).
-2. Add a corresponding entry at the top of `packages/<name>/CHANGELOG.md`.
-3. If the bumped package is a dependency of another `@aemvite/*` package
-   (currently only `aem-config` → `vite-plugin-aem-clientlib`), bump the
-   range in the dependent's `package.json` too.
-4. Re-publish using the same command for that package — `prepublishOnly`
-   re-runs `tsc` automatically, so no separate build step is required.
 
 ## License
 
