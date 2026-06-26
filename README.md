@@ -1,5 +1,10 @@
 # aem-vite
 
+[![npm: @aemvite/vite-plugin-aem-clientlib](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-clientlib?label=%40aemvite%2Fvite-plugin-aem-clientlib)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib)
+[![npm: @aemvite/vite-plugin-glob](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-glob?label=%40aemvite%2Fvite-plugin-glob)](https://www.npmjs.com/package/@aemvite/vite-plugin-glob)
+[![npm: @aemvite/vite-plugin-aem-resources](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-resources?label=%40aemvite%2Fvite-plugin-aem-resources)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources)
+[![npm: @aemvite/aem-config](https://img.shields.io/npm/v/%40aemvite%2Faem-config?label=%40aemvite%2Faem-config)](https://www.npmjs.com/package/@aemvite/aem-config)
+
 Drop webpack from your AEM `ui.frontend` and build clientlibs with pure Vite.
 
 `@aemvite/*` is a small toolchain of focused npm packages that lets any Adobe
@@ -12,12 +17,15 @@ exactly the same files — only the build that produces them changes.
 
 ## Packages
 
+Each package name links to its npm page; the source for every package lives
+under [`packages/`](./packages) in this repo.
+
 | Package | Replaces | Responsibility |
 |---|---|---|
-| [`@aemvite/aem-config`](./packages/aem-config) | Split webpack entries + `clientlib.config.js` | Typed config helper (`defineAemConfig`), loader, per-clientlib build-options resolver, and the `aem-build` CLI orchestrator. |
-| [`@aemvite/vite-plugin-aem-clientlib`](./packages/vite-plugin-aem-clientlib) | `aem-clientlib-generator` | Emits AEM clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) **byte-for-byte** against a captured golden reference, plus the `js/` / `css/` / `resources/` layout. |
-| [`@aemvite/vite-plugin-glob`](./packages/vite-plugin-glob) | `glob-import-loader` (styles) | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering. |
-| [`@aemvite/vite-plugin-aem-resources`](./packages/vite-plugin-aem-resources) | `copy-webpack-plugin` | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize. |
+| [`@aemvite/aem-config`](https://www.npmjs.com/package/@aemvite/aem-config) ([src](./packages/aem-config)) | Split webpack entries + `clientlib.config.js` | Typed config helper (`defineAemConfig`), loader, per-clientlib build-options resolver, and the `aem-build` CLI orchestrator. |
+| [`@aemvite/vite-plugin-aem-clientlib`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib) ([src](./packages/vite-plugin-aem-clientlib)) | `aem-clientlib-generator` | Emits AEM clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) **byte-for-byte** against a captured golden reference, plus the `js/` / `css/` / `resources/` layout. |
+| [`@aemvite/vite-plugin-glob`](https://www.npmjs.com/package/@aemvite/vite-plugin-glob) ([src](./packages/vite-plugin-glob)) | `glob-import-loader` (styles) | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering. |
+| [`@aemvite/vite-plugin-aem-resources`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources) ([src](./packages/vite-plugin-aem-resources)) | `copy-webpack-plugin` | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize. |
 
 ## How they fit together
 
@@ -638,6 +646,111 @@ for every exposed API:
 - Out of scope this round: build-time linting, Handlebars / Storybook
   integrations, SCSS-to-CSS source migration, byte-level parity of minified
   JS/CSS *content* (only descriptors and folder structure are byte-identical).
+
+## Publishing to npm
+
+Maintainer reference for cutting a release of the four `@aemvite/*` packages
+to the public npm registry. The same sequence works for the first publish and
+for subsequent version bumps.
+
+### Prerequisites
+
+- An npm account with publish rights on the `@aemvite` organisation. The org
+  itself must exist at <https://www.npmjs.com/org/aemvite> — creating it is a
+  one-time manual step.
+- Logged in on this machine:
+
+  ```sh
+  npm login
+  npm whoami
+  ```
+
+- A 2FA device ready: npm prompts for a fresh OTP **per `npm publish`**, so
+  four prompts total. OTPs are short-lived (~30 s); if one expires you will
+  see `EOTP` and can simply re-run that single command.
+
+### Publish order (and why it matters)
+
+Publish in dependency order so each later package can resolve its
+`@aemvite/*` dependency from the registry:
+
+1. **`@aemvite/vite-plugin-aem-clientlib`** — must go first; `aem-config`
+   declares `"@aemvite/vite-plugin-aem-clientlib": "^0.1.0"` and resolves it
+   from the public registry on install.
+2. **`@aemvite/vite-plugin-glob`** — independent, any order after step 1.
+3. **`@aemvite/vite-plugin-aem-resources`** — independent, any order after
+   step 1.
+4. **`@aemvite/aem-config`** — must go last (depends on step 1 being live).
+
+### Commands (per-directory form, recommended)
+
+Run from the monorepo root. Each `npm publish` triggers the package's
+`prepublishOnly` hook, which runs `npm run build` (`tsc`) — no separate
+build step is needed. Pass a fresh OTP each time:
+
+```sh
+( cd packages/vite-plugin-aem-clientlib && npm publish --access public --otp=XXXXXX )
+( cd packages/vite-plugin-glob          && npm publish --access public --otp=XXXXXX )
+( cd packages/vite-plugin-aem-resources && npm publish --access public --otp=XXXXXX )
+( cd packages/aem-config                && npm publish --access public --otp=XXXXXX )
+```
+
+### Workspace alternative
+
+The npm workspace form publishes the same tarballs from the repo root:
+
+```sh
+npm publish --access public -w @aemvite/vite-plugin-aem-clientlib --otp=XXXXXX
+npm publish --access public -w @aemvite/vite-plugin-glob          --otp=XXXXXX
+npm publish --access public -w @aemvite/vite-plugin-aem-resources --otp=XXXXXX
+npm publish --access public -w @aemvite/aem-config                --otp=XXXXXX
+```
+
+**Gotcha:** the root `package.json` declares `"packageManager":
+"pnpm@10.33.4"`, which Corepack-aware shims can use to route `npm` through
+`pnpm`. `pnpm` silently ignores `npm`'s `-w <name>` form and publishes
+nothing. If you see that, either prefix with `command npm` (bypasses shims)
+or use the per-directory form above, which is immune to this.
+
+### Notes and gotchas
+
+- **`--access public` is required on the first publish** of each scoped
+  package; without it npm defaults scoped packages to `restricted` and
+  rejects with a paid-tier error. The `publishConfig.access: "public"` field
+  in each `package.json` also covers this, but the explicit flag is harmless.
+- **Fresh OTP per command.** OTPs are single-use and short-lived. On `EOTP`,
+  re-run that one command with a new code — earlier successful publishes are
+  not affected.
+- **No overwrites.** Re-running a publish for an already-published version
+  fails with `EPUBLISHCONFLICT`. To re-release you must bump the version
+  (see [Bumping a version](#bumping-a-version)).
+- **Brief CDN propagation.** Right after step 1, the `aem-config` publish
+  may fail to resolve `@aemvite/vite-plugin-aem-clientlib@^0.1.0` from the
+  registry CDN. Wait ~20 s and retry only the `aem-config` step.
+
+### Verify after publishing
+
+```sh
+npm view @aemvite/vite-plugin-aem-clientlib version
+npm view @aemvite/vite-plugin-glob          version
+npm view @aemvite/vite-plugin-aem-resources version
+npm view @aemvite/aem-config                version
+```
+
+All four should report `0.1.0` (or the new version you just published).
+
+### Bumping a version
+
+Per package you want to release:
+
+1. Edit `packages/<name>/package.json` and bump `version` (semver — patch /
+   minor / major).
+2. Add a corresponding entry at the top of `packages/<name>/CHANGELOG.md`.
+3. If the bumped package is a dependency of another `@aemvite/*` package
+   (currently only `aem-config` → `vite-plugin-aem-clientlib`), bump the
+   range in the dependent's `package.json` too.
+4. Re-publish using the same command for that package — `prepublishOnly`
+   re-runs `tsc` automatically, so no separate build step is required.
 
 ## License
 
