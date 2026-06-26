@@ -1,13 +1,33 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "module": "es6",
-        "baseUrl": "../ui.frontend",
-        "removeComments": true,
-        "allowJs": true,
-        "preserveConstEnums": true,
-        "allowSyntheticDefaultImports": true,
-        "sourceMap": true
-    },
-    "include": [ "./src/**/*.ts" ]
+  "compilerOptions": {
+    "baseUrl": "../ui.frontend",
+    "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "module": "es6",
+    "noEmit": true,
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ]
+  },
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -12,9 +12,6 @@
   "scripts": {
     "dev": "aem-build --mode dev --config aem.config.mjs",
     "prod": "aem-build --mode prod --config aem.config.mjs",
-    "start": "vite",
-    "sync": "aemsync -d -p ../ui.apps/src/main/content",
-    "watch": "aemsync -w ../ui.apps/src/main/content",
     "test": "vitest run"
   },
   "devDependencies": {
@@ -22,10 +19,8 @@
     "@aemvite/vite-plugin-aem-clientlib": "file:../../packages/vite-plugin-aem-clientlib",
     "@aemvite/vite-plugin-aem-resources": "file:../../packages/vite-plugin-aem-resources",
     "@aemvite/vite-plugin-glob": "file:../../packages/vite-plugin-glob",
-    "aemsync": "^5.2.1",
-    "sass": "^1.77.0",
+    "sass": "^1.101.0",
     "vite": "^8.1.0",
-    "esbuild": "^0.28.1",
     "vitest": "^4.1.9"
   },
   "dependencies": {

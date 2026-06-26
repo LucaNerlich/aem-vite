@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-06-26
+
+### Changed
+- Improved `@aemvite/aem-config` README: documented `plugins`/`vite` passthrough fields, added "Where does `aem-build` come from?" section, replaced manual OTP publishing instructions with CI-first workflow.
+- Example project (`aemvite/ui.frontend`): rewrote `README.md` to document the Vite-based setup (replaces the stale webpack-era README), removed `esbuild` from devDependencies (installed transitively via `vite`), removed `aemsync` and the `start`/`sync`/`watch` scripts, bumped `sass` to `^1.101.0`, updated `tsconfig.json` to modern TypeScript settings.
+
 ## [0.2.0] - 2026-06-26
 
 ### Added

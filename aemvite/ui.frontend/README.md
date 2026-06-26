@@ -1,110 +1,121 @@
-# Frontend Build
+# ui.frontend
 
-## Features
+Vite-based AEM `ui.frontend` module. Replaces the legacy webpack + Babel +
+PostCSS + `aem-clientlib-generator` stack with **Vite + esbuild + Sass** while
+emitting clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) that are
+byte-identical to the AEM archetype's historical output.
 
-* Full TypeScript, ES6 and ES5 support (with applicable Webpack wrappers).
-* TypeScript and JavaScript linting (using a TSLint ruleset – driven by ESLint - rules can be adjusted to suit your team's needs).
-* ES5 output, for legacy browser support.
-* Globbing
-    * No need to add imports anywhere.
-    * All JS and CSS files can now be added to each component (best practice is under /clientlib/js or /clientlib/(s)css)
-    * No .content.xml or js.txt/css.txt files needed as everything is run through Webpack
-    * The globber pulls in all JS files under the /component/ folder. Webpack allows CSS/SCSS files to be chained in via JS files. They are pulled in through sites.js.
-    * The only files consumed by AEM are the output files site.js and site.css, the resources folder in /clientlib-site as well as dependencies.js and dependencies.css in /clientlib-dependencies
-* Chunks
-    * Main (site js/css)
-* Full Sass/Scss support (Sass is compiled to CSS via Webpack).
-* Static webpack development server with built in proxy to a local instance of AEM
+This module is the **reference consumer** of the
+[`@aemvite/*`](https://github.com/LucaNerlich/aem-vite) toolchain. It uses
+`file:` links to the local monorepo packages so the toolchain can be developed
+and tested end-to-end without publishing to npm first. A real AEM project would
+install only `@aemvite/aem-config` from the registry and get the three plugin
+packages transitively.
 
-## Installation
+## Prerequisites
 
-1. Install [NodeJS](https://nodejs.org/en/download/) (v10+), globally. This will also install `npm`.
-2. Navigate to `ui.frontend` in your project and run `npm ci`. (You must have run the archetype with `-DfrontendModule=general` to populate the ui.frontend folder)
+- **Node.js** `^20.19.0 || >=22.12.0` (required by Vite 8 + rolldown)
+- **npm** (or pnpm / yarn)
 
-## Usage
+When building via Maven, `frontend-maven-plugin` downloads and caches the
+right Node version automatically (see `pom.xml`).
 
-The following npm scripts drive the frontend workflow:
+## Install
 
-* `npm run dev` - Full build of client libraries with JS optimization disabled (tree shaking, etc) and source maps enabled and CSS optimization disabled.
-* `npm run prod` - Full build of client libraries build with JS optimization enabled (tree shaking, etc), source maps disabled and CSS optimization enabled.
-* `npm run start` - Starts a static webpack development server for local development with minimal dependencies on AEM.
-
-### General
-
-The ui.frontend module compiles the code under the `ui.frontend/src` folder and outputs the compiled CSS and JS, and any resources beneath a folder named `ui.frontend/dist`.
-
-* **Site** - `site.js`, `site.css` and a `resources/` folder for layout dependent images and fonts are created in a `dist/clientlib-site` folder.
-* **Dependencies** - `dependencies.js` and `dependencies.css` are created in a `dist/clientlib-dependencies` folder.
-
-### JavaScript
-
-* **Optimization** - for production builds, all JS that is not being used or
-called is removed.
-
-### CSS
-
-* **Autoprefixing** - all CSS is run through a prefixer and any properties that require prefixing will automatically have those added in the CSS.
-* **Optimization** - at post, all CSS is run through an optimizer (cssnano) which normalizes it according to the following default rules:
-    * Reduces CSS calc expression wherever possible, ensuring both browser compatibility and compression.
-    * Converts between equivalent length, time and angle values. Note that by default, length values are not converted.
-    * Removes comments in and around rules, selectors & declarations.
-    * Removes duplicated rules, at-rules and declarations. Note that this only works for exact duplicates.
-    * Removes empty rules, media queries and rules with empty selectors, as they do not affect the output.
-    * Merges adjacent rules by selectors and overlapping property/value pairs.
-    * Ensures that only a single `@charset` is present in the CSS file and moves it to the top of the document.
-    * Replaces the CSS initial keyword with the actual value, when the resulting output is smaller.
-    * Compresses inline SVG definitions with SVGO.
-* **Cleaning** - explicit clean task for wiping out the generated CSS, JS and Map files on demand.
-* **Source Mapping** - development build only.
-
-#### Notes
-
-* Utilizes dev-only and prod-only webpack config files that share a common config file. This way the development and production settings can be tweaked independently.
-
-### Client Library Generation
-
-The second part of the ui.frontend module build process leverages the [aem-clientlib-generator](https://www.npmjs.com/package/aem-clientlib-generator) plugin to move the compiled CSS, JS and any resources into the `ui.apps` module. The aem-clientlib-generator configuration is defined in `clientlib.config.js`. The following client libraries are generated:
-
-* **clientlib-site** - `ui.apps/src/main/content/jcr_root/apps/<app>/clientlibs/clientlib-site`
-* **clientlib-dependencies** - `ui.apps/src/main/content/jcr_root/apps/<app>/clientlibs/clientlib-dependencies`
-
-###  Page Inclusion
-
-`clientlib-site` and `clientlib-dependencies` categories are included on pages via the Page Policy configuration as part of the default template. To view the policy, edit the **Content Page Template**  > **Page Information** > **Page Policy**.
-
-The final inclusion of client libraries on the sites page is as follows:
-
-```html
-
-<HTML>
-    <head>
-        <link rel="stylesheet" href="clientlib-base.css" type="text/css">
-        <script type="text/javascript" src="clientlib-dependencies.js"></script>
-        <link rel="stylesheet" href="clientlib-dependencies.css" type="text/css">
-        <link rel="stylesheet" href="clientlib-site.css" type="text/css">
-    </head>
-    <body>
-        ....
-        <script type="text/javascript" src="clientlib-site.js"></script>
-        <script type="text/javascript" src="clientlib-base.js"></script>
-    </body>
-</HTML>
+```sh
+npm ci
 ```
 
-The above inclusion can of course be modified by updating the Page Policy and/or modifying the categories and embed properties of respective client libraries.
+## Scripts
 
-### Static Webpack Development Server
+| Script | What it does |
+|---|---|
+| `npm run dev` | Build all clientlibs in development mode — no minification, inline sourcemaps. |
+| `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps. Output is byte-identical to the golden reference. |
+| `npm test` | Run unit tests with Vitest. |
 
-Included in the ui.frontend module is a [webpack-dev-server](https://github.com/webpack/webpack-dev-server) that provides live reloading for rapid front-end development outside of AEM. The setup leverages the [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin) to automatically inject CSS and JS compiled from the ui.frontend module into a static HTML template.
+Both `dev` and `prod` call the `aem-build` CLI that ships with
+`@aemvite/aem-config` (installed via `node_modules/.bin/aem-build`). No
+custom build script exists in this module — configuration lives entirely in
+`aem.config.mjs`.
 
-#### Important files
+## Configuration
 
-* `ui.frontend/webpack.dev.js` - This contains the configuration for the webpack-dev-serve and points to the html template to use. It also contains a proxy configuration to an AEM instance running on `localhost:4502`.
-* `ui.frontend/src/main/webpack/static/index.html` - This is the static HTML that the server will run against. This allows a developer to make CSS/JS changes and see them immediately reflected in the markup. It is assumed that the markup placed in this file accurately reflects generated markup by AEM components. Note* that markup in this file does **not** get automatically synced with AEM component markup. This file also contains references to client libraries stored in AEM, like Core Component CSS and Responsive Grid CSS. The webpack development server is set up to proxy these CSS/JS includes from a local running AEM instance based on the configuration found in `ui.frontend/webpack.dev.js`.
+`aem.config.mjs` is the single source of truth for what clientlibs are built
+and where they land. It uses `defineAemConfig()` from `@aemvite/aem-config`:
 
-#### Using
+```
+aem.config.mjs
+  └── defineAemConfig({ clientLibRoot, clientlibs: [...] })
+```
 
-1. From within the root of the project run the command `mvn -PautoInstallSinglePackage clean install` to install the entire project to an AEM instance running at `localhost:4502`
-2. Navigate inside the `ui.frontend` folder.
-3. Run the following command `npm run start` to start the webpack dev server. Once started it should open a browser (localhost:8080 or the next available port).
-4. You can now modify CSS, JS, SCSS, and TS files and see the changes immediately reflected in the webpack dev server.
+The config defines two clientlibs:
+
+| Clientlib | Type | Output |
+|---|---|---|
+| `clientlib-dependencies` | Descriptor-only (`entry: ''`) | `.content.xml`, `js.txt`, `css.txt` only |
+| `clientlib-site` | JS + CSS + resources | `js/site.js`, `css/site.css`, `resources/` |
+
+## Source layout
+
+```
+src/main/webpack/
+├── components/         # Component SCSS (glob-imported in main.scss)
+├── resources/          # Copied to clientlib-site/resources/
+└── site/
+    ├── main.ts         # JS entry → site.js
+    ├── main.scss       # CSS entry (imported from main.ts) → site.css
+    ├── _variables.scss
+    └── _base.scss
+```
+
+**JS globs:** use Vite's native `import.meta.glob` in `main.ts` to eagerly
+load component modules — no webpack loaders needed.
+
+**SCSS globs:** `@aemvite/vite-plugin-glob` expands `@import` glob patterns
+(e.g. `@import '../components/**/*.scss'`) before Sass sees them.
+Non-glob imports like `@import 'variables'` are passed through verbatim.
+
+## Output
+
+Built clientlibs land directly in:
+
+```
+../ui.apps/src/main/content/jcr_root/apps/aemvite/clientlibs/
+├── clientlib-dependencies/
+│   ├── .content.xml
+│   ├── js.txt
+│   └── css.txt
+└── clientlib-site/
+    ├── .content.xml
+    ├── js.txt
+    ├── css.txt
+    ├── js/site.js
+    ├── css/site.css
+    └── resources/       # only present when real files exist
+```
+
+Descriptor files are byte-identical to what the AEM archetype's
+`aem-clientlib-generator` produced for the same clientlib definitions, so
+dispatcher invalidation, Cloud Manager packaging, and downstream caches
+require no changes.
+
+## Maven integration
+
+`pom.xml` wires `frontend-maven-plugin` to run `npm ci` then `npm run prod`
+during the `generate-resources` phase. The `fedDev` profile runs `npm run dev`
+instead. No pom changes are needed when the underlying toolchain changes — only
+the npm scripts behind `run prod` / `run dev` swap.
+
+```sh
+# Run the Maven frontend build locally
+mvn -f pom.xml -P fedDev generate-resources
+```
+
+## Advanced: plugins and Vite config passthrough
+
+`aem.config.mjs` accepts optional `plugins` and `vite` fields (global and
+per-clientlib) to inject Vite plugins or deep config overrides without
+writing a custom build script. See the
+[`@aemvite/aem-config` README](../../packages/aem-config/README.md#plugin-and-vite-config-passthrough)
+for examples.
