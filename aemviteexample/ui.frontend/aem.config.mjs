@@ -10,7 +10,7 @@ export default defineAemConfig({
     '../ui.apps/src/main/content/jcr_root/apps/aemviteexample/clientlibs',
   ),
   build: {
-    target: 'es2026',
+    target: 'es2025',
   },
   clientlibs: [
     {

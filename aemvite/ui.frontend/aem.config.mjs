@@ -15,7 +15,7 @@ export default defineAemConfig({
     '../ui.apps/src/main/content/jcr_root/apps/aemvite/clientlibs',
   ),
   build: {
-    target: 'es2026',
+    target: 'es2025',
   },
   clientlibs: [
     {
@@ -33,8 +33,8 @@ export default defineAemConfig({
       // CSS with no sourcemap. Flip `minify` or `sourcemap` here to change just
       // this clientlib's output without touching the global block.
       build: {
-        minify: { js: true, css: true },
-        sourcemap: false,
+        minify: { js: false, css: false },
+        sourcemap: true,
       },
     },
   ],

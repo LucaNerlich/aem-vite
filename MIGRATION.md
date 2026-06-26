@@ -318,7 +318,7 @@ export default defineAemConfig({
 
   // Optional project-wide build overrides. Per-clientlib `build` wins.
   build: {
-    target: 'es2026',
+    target: 'es2025',
   },
 
   clientlibs: [
