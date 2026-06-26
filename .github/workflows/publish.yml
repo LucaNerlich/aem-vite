@@ -1,0 +1,117 @@
+# Publishes the four @aemvite/* packages to the public npm registry on every
+# `v*` tag push, using npm's OIDC "trusted publishing" flow (no NPM_TOKEN, no OTP).
+#
+# REQUIRED ONE-TIME SETUP on npmjs.com (per package):
+#   Package settings → Publishing access → Trusted Publisher → Add GitHub Actions:
+#     Organization or user: LucaNerlich
+#     Repository:           aem-vite
+#     Workflow filename:    publish.yml
+#     Environment:          (leave empty — no environment is used here)
+#   Without this configured for each of the 4 packages, OIDC publishes are rejected.
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Required for OIDC trusted publishing. `contents: read` is the least-privilege
+# default so the checkout step still works.
+permissions:
+  id-token: write
+  contents: read
+
+# Serialise tag pushes so two simultaneous tags can't interleave publishes.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: false
+
+      # Node 22 ships an npm older than the 11.5.1+ required for OIDC trusted
+      # publishing. Upgrade before any publish step runs.
+      - name: Upgrade npm (required for OIDC trusted publishing)
+        run: |
+          npm install -g npm@latest
+          npm -v
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all workspaces
+        run: npm run build --workspaces --if-present
+
+      - name: Test all workspaces (gate publish on green tests)
+        run: npm test --workspaces --if-present
+
+      # Publish in MANDATORY dependency order. `aem-config` is LAST because it
+      # depends on the three plugin packages being resolvable on the registry.
+      # Each step is idempotent: if the exact name@version is already published
+      # (e.g. re-running a tag), it skips instead of hard-failing.
+      # NOTE: no NODE_AUTH_TOKEN / no .npmrc token — OIDC trusted publishing
+      # supplies credentials and provenance automatically.
+      - name: Publish @aemvite/vite-plugin-aem-clientlib (1/4)
+        run: |
+          NAME=$(node -p "require('./packages/vite-plugin-aem-clientlib/package.json').name")
+          VERSION=$(node -p "require('./packages/vite-plugin-aem-clientlib/package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            npm publish --access public -w @aemvite/vite-plugin-aem-clientlib
+          fi
+
+      - name: Publish @aemvite/vite-plugin-glob (2/4)
+        run: |
+          NAME=$(node -p "require('./packages/vite-plugin-glob/package.json').name")
+          VERSION=$(node -p "require('./packages/vite-plugin-glob/package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            npm publish --access public -w @aemvite/vite-plugin-glob
+          fi
+
+      - name: Publish @aemvite/vite-plugin-aem-resources (3/4)
+        run: |
+          NAME=$(node -p "require('./packages/vite-plugin-aem-resources/package.json').name")
+          VERSION=$(node -p "require('./packages/vite-plugin-aem-resources/package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            npm publish --access public -w @aemvite/vite-plugin-aem-resources
+          fi
+
+      - name: Publish @aemvite/aem-config (4/4 — LAST, depends on the others)
+        run: |
+          NAME=$(node -p "require('./packages/aem-config/package.json').name")
+          VERSION=$(node -p "require('./packages/aem-config/package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            npm publish --access public -w @aemvite/aem-config
+          fi
+
+      - name: Verify published versions on the registry
+        run: |
+          for pkg in \
+            @aemvite/vite-plugin-aem-clientlib \
+            @aemvite/vite-plugin-glob \
+            @aemvite/vite-plugin-aem-resources \
+            @aemvite/aem-config; do
+            echo "$pkg -> $(npm view "$pkg" version)"
+          done
