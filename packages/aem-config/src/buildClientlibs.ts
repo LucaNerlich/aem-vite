@@ -144,7 +144,20 @@ function buildInlineConfig(
       target: resolved.target,
       lib: {
         entry,
-        formats: ["es"] as ("es")[],
+        // IIFE wraps the bundle in `(function(){...})()` so top-level `var`,
+        // `let`, `const`, `class`, and `function` declarations stay scoped.
+        // ESM/CJS would leak them into AEM's aggregation scope where the
+        // clientlib's embedded siblings get concatenated into a single served
+        // response — colliding declarations (e.g. duplicate runtime helpers
+        // from multiple Rolldown-built clientlibs) trigger `SyntaxError:
+        // Identifier '<x>' has already been declared` at parse time. The
+        // legacy webpack output had the same `(()=>{...})()` shape.
+        formats: ["iife"] as ("iife")[],
+        // IIFE/UMD require a global var name even when the bundle exposes no
+        // exports. Sanitize the clientlib name to a valid JS identifier — the
+        // resulting `var <name>` line is harmless (just one global) and
+        // structurally what webpack emitted via `output.library`.
+        name: toIifeName(clientlib.name),
         fileName: () => `${clientlib.name}.js`,
         // Name the extracted CSS bundle after the clientlib so output stays
         // byte-identical regardless of the consumer's package.json `name`
@@ -283,6 +296,19 @@ function realpathOrSelf(p: string): string {
   } catch {
     return p;
   }
+}
+
+/**
+ * Map a clientlib folder name to a valid JS identifier for IIFE `lib.name`.
+ * Replaces any character outside `[A-Za-z0-9_$]` with `_` and prefixes a
+ * leading digit with `_` so the result is a legal `var` binding. Prefixed
+ * with `__aemvite_` to keep the single emitted global distinct from any
+ * project symbols that could otherwise collide via AEM aggregation.
+ */
+function toIifeName(clientlibName: string): string {
+  const sanitized = clientlibName.replace(/[^A-Za-z0-9_$]/g, "_");
+  const safe = /^[0-9]/.test(sanitized) ? `_${sanitized}` : sanitized;
+  return `__aemvite_${safe}`;
 }
 
 async function walk(dir: string, prefix = ""): Promise<string[]> {

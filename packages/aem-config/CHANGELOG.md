@@ -5,6 +5,11 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-06-26
+
+### Fixed
+- Vite/Rollup output format changed from `es` to `iife` to prevent top-level variable declarations from leaking into AEM's concatenated clientlib output (`SyntaxError: Identifier has already been declared`). A `toIifeName()` helper sanitises the clientlib name to a valid JS identifier for the IIFE's global var binding.
+
 ## [0.5.0] - 2026-06-26
 
 ### Added

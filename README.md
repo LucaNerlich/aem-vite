@@ -198,7 +198,7 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.5.0", // pulls the four plugin packages + esbuild peer
+    "@aemvite/aem-config": "^0.5.1", // pulls the four plugin packages + esbuild peer
     "sass":    "^1.77.0",
     "vite":    "^8.1.0",
     "vitest":  "^4.1.9"
@@ -652,8 +652,8 @@ for every exposed API:
 
 ## Status & scope
 
-- **`@aemvite/aem-config`**: `0.5.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all four plugin packages now transitive deps.
-- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**: `0.5.0`.
+- **`@aemvite/aem-config`**: `0.5.1` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all four plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**: `0.5.1`.
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output

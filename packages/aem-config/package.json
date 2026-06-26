@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/aem-config",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
   "keywords": [
     "aem",
@@ -52,10 +52,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@aemvite/vite-plugin-aem-clientlib": "^0.5.0",
-    "@aemvite/vite-plugin-aem-css-url-passthrough": "^0.5.0",
-    "@aemvite/vite-plugin-aem-resources": "^0.5.0",
-    "@aemvite/vite-plugin-glob": "^0.5.0"
+    "@aemvite/vite-plugin-aem-clientlib": "^0.5.1",
+    "@aemvite/vite-plugin-aem-css-url-passthrough": "^0.5.1",
+    "@aemvite/vite-plugin-aem-resources": "^0.5.1",
+    "@aemvite/vite-plugin-glob": "^0.5.1"
   },
   "peerDependencies": {
     "esbuild": "^0.28",

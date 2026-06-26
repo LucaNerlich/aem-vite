@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2026-06-26
+
+### Fixed
+- Switched Vite/Rollup output format from `es` to `iife` in `@aemvite/aem-config`. ESM top-level declarations leaked into AEM's clientlib aggregation scope and caused `SyntaxError: Identifier has already been declared` at runtime. The IIFE wrapper scopes all declarations, matching the behaviour of the legacy webpack output.
+
 ## [0.5.0] - 2026-06-26
 
 ### Added

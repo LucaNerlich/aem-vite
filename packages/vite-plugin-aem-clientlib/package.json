@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/vite-plugin-aem-clientlib",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Vite plugin and descriptor emitter for AEM clientlibs — byte-identical .content.xml, js.txt, css.txt.",
   "keywords": [
     "aem",
