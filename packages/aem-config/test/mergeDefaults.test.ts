@@ -97,6 +97,28 @@ describe("mergeDefaults", () => {
     expect(lib.resources).toEqual(["src/resources"]);
   });
 
+  it("carries global plugins/vite and per-clientlib plugins through", () => {
+    const globalPlugin = { name: "global" };
+    const sitePlugin = { name: "site" };
+    const merged = mergeDefaults({
+      clientLibRoot: "./clientlibs",
+      plugins: [globalPlugin],
+      vite: { logLevel: "silent" },
+      clientlibs: [
+        {
+          name: "site",
+          entry: "src/main.ts",
+          categories: ["aemvite.site"],
+          plugins: [sitePlugin],
+        },
+      ],
+    });
+
+    expect(merged.plugins).toEqual([globalPlugin]);
+    expect(merged.vite).toEqual({ logLevel: "silent" });
+    expect(merged.clientlibs[0]!.plugins).toEqual([sitePlugin]);
+  });
+
   it("does not mutate the input config", () => {
     const config = defineAemConfig({
       clientLibRoot: "./clientlibs",

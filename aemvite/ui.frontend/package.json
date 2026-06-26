@@ -10,8 +10,8 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "type": "module",
   "scripts": {
-    "dev": "node aem-build.mjs dev",
-    "prod": "node aem-build.mjs prod",
+    "dev": "aem-build --mode dev --config aem.config.mjs",
+    "prod": "aem-build --mode prod --config aem.config.mjs",
     "start": "vite",
     "sync": "aemsync -d -p ../ui.apps/src/main/content",
     "watch": "aemsync -w ../ui.apps/src/main/content",

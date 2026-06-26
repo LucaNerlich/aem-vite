@@ -1,3 +1,5 @@
+import type { PluginOption, UserConfig } from "vite";
+
 export type ProcessorList = readonly string[];
 
 /**
@@ -47,6 +49,17 @@ export interface AemClientlib {
   jsProcessor?: ProcessorList;
   /** Per-clientlib build overrides; layered over `AemConfig.build`. */
   build?: BuildOptions;
+  /**
+   * Extra Vite plugins applied to this clientlib's build, after the built-in
+   * `aemViteGlob` / `aemResources` and after `AemConfig.plugins`. Lets advanced
+   * adopters inject e.g. a framework plugin without writing a build script.
+   */
+  plugins?: PluginOption[];
+  /**
+   * Deep Vite config override merged (via Vite's `mergeConfig`) into this
+   * clientlib's generated inline config — the final escape hatch.
+   */
+  vite?: UserConfig;
 }
 
 export interface AemConfig {
@@ -58,6 +71,13 @@ export interface AemConfig {
   defaults?: Partial<AemClientlib>;
   /** Global build options applied to every clientlib (overridden per-clientlib). */
   build?: BuildOptions;
+  /**
+   * Extra Vite plugins applied to every clientlib build, after the built-in
+   * `aemViteGlob` / `aemResources` and before any per-clientlib `plugins`.
+   */
+  plugins?: PluginOption[];
+  /** Deep Vite config override merged into every clientlib's inline config. */
+  vite?: UserConfig;
 }
 
 export type ResolvedAemClientlib = AemClientlib &
@@ -73,6 +93,10 @@ export interface ResolvedAemConfig {
   clientlibs: ResolvedAemClientlib[];
   /** Raw global build options (resolved per-mode at build time). */
   build?: BuildOptions;
+  /** Global extra Vite plugins (applied to every clientlib build). */
+  plugins?: PluginOption[];
+  /** Global deep Vite config override. */
+  vite?: UserConfig;
 }
 
 export type BuildMode = "development" | "production";

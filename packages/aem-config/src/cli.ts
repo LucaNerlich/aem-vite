@@ -59,7 +59,12 @@ function normaliseMode(value: string): BuildMode {
 }
 
 function defaultConfigPath(): string {
-  const candidates = ["aem.config.ts", "aem.config.mts", "aem.config.js"];
+  const candidates = [
+    "aem.config.ts",
+    "aem.config.mts",
+    "aem.config.mjs",
+    "aem.config.js",
+  ];
   for (const candidate of candidates) {
     const resolved = path.resolve(process.cwd(), candidate);
     if (existsSync(resolved)) return resolved;

@@ -163,16 +163,13 @@ toolchain:
 Run these inside `ui.frontend/` (the module that owns `package.json`):
 
 ```sh
-# The four @aemvite packages
-npm install --save-dev \
-  @aemvite/aem-config \
-  @aemvite/vite-plugin-aem-clientlib \
-  @aemvite/vite-plugin-glob \
-  @aemvite/vite-plugin-aem-resources
+# Just the entry-point package. @aemvite/aem-config depends on the three plugin
+# packages (clientlib emitter, glob, resources), so they install transitively —
+# you do not list them yourself.
+npm install --save-dev @aemvite/aem-config
 
-# Required peer for Vite (declared as a peer by three of the four packages)
-# Vite 8 treats `esbuild` as an OPTIONAL peer, so install it explicitly —
-# without it `npm run prod` fails with `Cannot find package 'esbuild'`.
+# Required peers. Vite 8 treats `esbuild` as an OPTIONAL peer, so install it
+# explicitly — without it the build fails with `Cannot find package 'esbuild'`.
 npm install --save-dev vite@^8 esbuild@^0.28.0
 
 # Only if any clientlib entry imports .scss/.sass — plain CSS doesn't need it
@@ -182,31 +179,26 @@ npm install --save-dev sass
 If your build needs an AEM publish/watch loop, also keep `aemsync` (the
 reference uses `aemsync@^5.2.1`). It is independent of the build toolchain.
 
-The reference `ui.frontend/package.json` ends up with this minimal dependency
-list:
+A published-package consumer's `ui.frontend/package.json` ends up this small:
 
 ```jsonc
 {
   "type": "module",
-  "dependencies": {
-    "@aemvite/aem-config":                  "file:../../packages/aem-config",
-    "@aemvite/vite-plugin-aem-clientlib":   "file:../../packages/vite-plugin-aem-clientlib",
-    "@aemvite/vite-plugin-aem-resources":   "file:../../packages/vite-plugin-aem-resources",
-    "@aemvite/vite-plugin-glob":            "file:../../packages/vite-plugin-glob",
-    "aemsync": "^5.2.1",
-    "sass":    "^1.77.0",
-    "vite":    "^8.1.0"
-  },
   "devDependencies": {
+    "@aemvite/aem-config": "^0.2.0", // pulls the three plugin packages in
+    "aemsync": "^5.2.1",
     "esbuild": "^0.28.1",
-    "vitest": "^4.1.9"
+    "sass":    "^1.77.0",
+    "vite":    "^8.1.0",
+    "vitest":  "^4.1.9"
   }
 }
 ```
 
-(In a published-package consumer, replace the `file:` paths with normal
-semver ranges such as `"@aemvite/aem-config": "^0.1.0"`. `"type": "module"`
-is required so `aem.config.mjs` and `aem-build.mjs` are loaded as ESM.)
+(`"type": "module"` is required so `aem.config.mjs` is loaded as ESM. The
+reference `aemvite/ui.frontend` in this repo instead `file:`-links all four
+`@aemvite/*` packages so the local monorepo resolves them without the registry;
+a real adopter only needs the single `@aemvite/aem-config` dependency above.)
 
 ### 3. Create `aem.config.mjs`
 
@@ -239,6 +231,14 @@ export default defineAemConfig({
   build: {
     target: 'es2015',
   },
+
+  // Optional escape hatch for advanced builds — extra Vite plugins applied to
+  // every clientlib build (after the built-in glob/resources plugins), and a
+  // deep Vite config override merged via Vite's `mergeConfig`. Both also exist
+  // per-clientlib. This means you never need to write your own build script to
+  // inject e.g. a framework plugin.
+  // plugins: [someVitePlugin()],
+  // vite: { resolve: { alias: { '@': '/src' } } },
 
   // Optional defaults merged into every clientlib (per-clientlib values
   // win wholesale — arrays are replaced, not concatenated).
@@ -283,13 +283,10 @@ baselines (with no overrides) are:
 Field reference for every supported option lives in the
 [`@aemvite/aem-config` README](./packages/aem-config#config-shape).
 
-### 4. Create the build orchestrator (`aem-build.mjs`)
+### 4. Drive the build with the `aem-build` CLI
 
-You have two ways to drive the build. Pick the one that matches your needs.
-
-**Option A — the `aem-build` CLI (simple projects).** `@aemvite/aem-config`
-ships an `aem-build` bin that loads your config and runs every clientlib for
-you:
+There is **no build script to write** — `@aemvite/aem-config` ships an
+`aem-build` bin that loads your config and builds every clientlib for you:
 
 ```sh
 npx aem-build --mode production --config aem.config.mjs
@@ -298,96 +295,30 @@ npx aem-build -m dev -c aem.config.mjs -o dist
 ```
 
 The CLI accepts `--mode dev|prod|development|production`, `--config <path>`
-(default `./aem.config.ts`, then `.mts`, then `.js`), and `--out-dir <path>`
-(default `./dist`). It calls `buildClientlibs()`, which runs one Vite library
-build per entry into a shared `outDir` and then invokes the
-`@aemvite/vite-plugin-aem-clientlib` emitter for every clientlib.
+(default `./aem.config.ts`, then `.mts`, `.mjs`, `.js`), and `--out-dir <path>`
+(the staging dir, default `./dist`). It calls `buildClientlibs()`, which for
+each clientlib:
 
-**Option B — a custom `aem-build.mjs` (advanced).** The reference
-`ui.frontend` uses a small custom orchestrator so it can fully control how
-`resources/` is walked and how Vite's per-entry assets are renamed for
-byte-identical clientlib output. It uses the package's lower-level building
-blocks: `loadAemConfig`, `resolveBuildOptions`, `emitClientlib`, plus
-`vite.build()`. See [`aemvite/ui.frontend/aem-build.mjs`](./aemvite/ui.frontend/aem-build.mjs)
-for the full file. The shape is:
+- skips the Vite build for a descriptor-only clientlib (`entry: ''`) but still
+  emits its descriptor;
+- otherwise runs one Vite library build wiring `@aemvite/vite-plugin-glob`
+  (SCSS/CSS globs), `@aemvite/vite-plugin-aem-resources` (your `resources`),
+  and any `plugins` / `vite` overrides from your config;
+- names the outputs after the clientlib (`<name>.js` / `<name>.css`) and lets
+  `@aemvite/vite-plugin-aem-clientlib` emit byte-identical descriptors into
+  `clientLibRoot`.
 
-```js
-// aem-build.mjs
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { readdir, rm } from 'node:fs/promises';
-import { build as viteBuild } from 'vite';
-import { loadAemConfig, resolveBuildOptions } from '@aemvite/aem-config';
-import { emitClientlib } from '@aemvite/vite-plugin-aem-clientlib';
-import { aemViteGlob } from '@aemvite/vite-plugin-glob';
-import { aemResources } from '@aemvite/vite-plugin-aem-resources';
+`--mode development` ↔ dev baselines (no minify, inline sourcemap);
+`--mode production` ↔ prod baselines (esbuild minify on, no sourcemap) — exactly
+`resolveBuildOptions(mode, config.build, clientlib.build)`, byte-identical to
+the historical webpack descriptors (verified against a captured golden
+reference).
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const mode = process.argv[2] === 'dev' ? 'development' : 'production';
-
-const config = await loadAemConfig(path.resolve(__dirname, 'aem.config.mjs'));
-const stagingRoot = path.resolve(__dirname, 'dist');
-await rm(stagingRoot, { recursive: true, force: true });
-
-for (const cl of config.clientlibs) {
-  const stagingDir = path.join(stagingRoot, `clientlib-${cl.name}`);
-  const files = [];
-
-  if (cl.entry) {
-    const entry = path.resolve(__dirname, cl.entry);
-    const resourceEntries = (cl.resources ?? []).map((from) => ({ from }));
-    const resolved = resolveBuildOptions(mode, config.build, cl.build);
-
-    await viteBuild({
-      configFile: false,
-      root: __dirname,
-      mode,
-      logLevel: 'warn',
-      plugins: [
-        aemViteGlob(),
-        ...(resourceEntries.length ? [aemResources(resourceEntries)] : []),
-      ],
-      build: {
-        outDir: stagingDir,
-        emptyOutDir: true,
-        minify: resolved.minify.js ? 'esbuild' : false,
-        cssMinify: resolved.minify.css ? 'esbuild' : false,
-        sourcemap: resolved.sourcemap,
-        target: resolved.target,
-        lib: { entry, formats: ['es'], fileName: () => `${cl.name}.js` },
-        rollupOptions: {
-          output: {
-            inlineDynamicImports: true,
-            assetFileNames: (info) =>
-              (info.name ?? '').toLowerCase().endsWith('.css')
-                ? `${cl.name}.css`
-                : '[name][extname]',
-          },
-        },
-      },
-    });
-
-    // Stage the per-entry JS/CSS plus any copied resources/ tree.
-    for (const e of await readdir(stagingDir, { withFileTypes: true })) {
-      if (!e.isFile()) continue;
-      const ext = path.extname(e.name).toLowerCase();
-      if (ext === '.js' || ext === '.css') {
-        files.push({ source: path.join(stagingDir, e.name), basename: e.name });
-      }
-    }
-    // ...walk stagingDir/resources/ and push each file...
-  }
-
-  // Final emit: writes .content.xml + js.txt + css.txt + js/, css/, resources/.
-  await emitClientlib({ clientlib: cl, outDir: config.clientLibRoot, files });
-}
-```
-
-`mode === 'development'` ↔ dev baselines (no minify, inline sourcemap);
-`mode === 'production'` ↔ prod baselines (esbuild minify on, no sourcemap).
-The exact behavior comes from `resolveBuildOptions(mode, config.build, cl.build)`
-and stays byte-identical to the historical webpack output for the default
-case (verified in this repo against a captured golden reference).
+**Need something the config can't express?** Reach for the `plugins` / `vite`
+passthrough first (see step 3). Only if that is still not enough, the
+lower-level exports (`loadAemConfig`, `resolveBuildOptions`, `emitClientlib`)
+let you assemble a bespoke orchestrator — but the CLI is the supported path and
+covers the archetype end to end.
 
 ### 5. Wire npm scripts (and Maven)
 
@@ -396,8 +327,8 @@ In `ui.frontend/package.json`:
 ```jsonc
 {
   "scripts": {
-    "dev":   "node aem-build.mjs dev",       // or: "aem-build --mode dev -c aem.config.mjs"
-    "prod":  "node aem-build.mjs prod",      // or: "aem-build --mode prod -c aem.config.mjs"
+    "dev":   "aem-build --mode dev --config aem.config.mjs",
+    "prod":  "aem-build --mode prod --config aem.config.mjs",
     "start": "vite",                         // Vite dev server (optional)
     "sync":  "aemsync -d -p ../ui.apps/src/main/content",
     "watch": "aemsync -w ../ui.apps/src/main/content",
@@ -409,7 +340,10 @@ In `ui.frontend/package.json`:
 **Maven side:** `frontend-maven-plugin` calls `npm run prod` during
 `generate-resources` (and `npm run dev` under the `fedDev` profile in the
 reference). Because the npm script names did not change, you do **not** need
-to edit `pom.xml`. Confirm with:
+to edit `pom.xml` — but its `<nodeVersion>` must satisfy Vite 8's engines
+(`^20.19.0 || >=22.12.0`); the reference pins `v22.12.0`. An older Node fails
+with `SyntaxError: ... does not provide an export named 'styleText'`. Confirm
+with:
 
 ```sh
 mvn -f ui.frontend/pom.xml -P fedDev generate-resources
@@ -460,7 +394,7 @@ Authoring stays unchanged:
 ```
 
 The `vite-plugin-glob` plugin only needs to be active during the per-entry
-Vite build — `aem-build.mjs` already passes it to `viteBuild()`. If you run
+Vite build — `aem-build` wires it in for you automatically. If you run
 `vite` as a standalone dev server (`npm start`), put it in your
 `vite.config.mjs` plugins array as well:
 
@@ -601,10 +535,8 @@ fixture). To verify in your own project before deleting the old build:
   so a clean `npm install` will not pull it in. Add it explicitly:
   `npm install --save-dev esbuild@^0.28.0`.
 - **`Unknown --mode 'release'` (or similar) from `aem-build`.** Only
-  `dev`, `prod`, `development`, and `production` are accepted. The custom
-  `aem-build.mjs` flavor only checks for `dev` and treats everything else
-  as production.
-- **`Error: Cannot find package 'vite'`** during `node aem-build.mjs prod`.
+  `dev`, `prod`, `development`, and `production` are accepted.
+- **`Error: Cannot find package 'vite'`** during `npm run prod`.
   Make sure `vite` is installed in `ui.frontend/node_modules` (it is a peer
   of `@aemvite/aem-config`, so npm 7+ should auto-install it, but
   `npm install --save-dev vite@^8` makes it explicit).

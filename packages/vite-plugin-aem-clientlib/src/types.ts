@@ -14,13 +14,13 @@ export interface ClientlibDefinition {
   /** Bare clientlib name (no `clientlib-` prefix). E.g. `"site"`. */
   name: string;
   /** `categories="[...]"` — required, must be non-empty. */
-  categories: string[];
+  categories: readonly string[];
   /** `dependencies="[...]"` — omitted entirely when empty/undefined. */
-  dependencies?: string[];
+  dependencies?: readonly string[];
   /** `cssProcessor="[...]"`. Default `["default:none","min:none"]`. */
-  cssProcessor?: string[];
+  cssProcessor?: readonly string[];
   /** `jsProcessor="[...]"`. Default `["default:none","min:none"]`. */
-  jsProcessor?: string[];
+  jsProcessor?: readonly string[];
   /** `allowProxy="{Boolean}..."`. Default `true`. */
   allowProxy?: boolean;
 }
