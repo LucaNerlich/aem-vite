@@ -77,11 +77,17 @@ Show the user the proposed bump level and the new version string and **confirm b
 **Important:** Do NOT use `npm version` at the workspace root — the `pnpm` shim intercepts it and behaves incorrectly (see CLAUDE.md). Instead, `cd` into each package directory separately:
 
 ```bash
-(cd packages/aem-config              && npm version <bump> --no-git-tag-version)
-(cd packages/vite-plugin-aem-clientlib && npm version <bump> --no-git-tag-version)
-(cd packages/vite-plugin-glob          && npm version <bump> --no-git-tag-version)
-(cd packages/vite-plugin-aem-resources && npm version <bump> --no-git-tag-version)
+# If the working tree is dirty (changes included in the release commit),
+# add --force to bypass npm's git-state check.
+(cd packages/aem-config              && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-clientlib && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-glob          && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-resources && npm version <bump> --no-git-tag-version --force)
 ```
+
+> **Note:** `--no-git-tag-version` alone is not enough when the tree is dirty — npm still exits non-zero. `--force` suppresses that check; it is safe here because we never let npm create a tag (the skill handles tagging explicitly in Step 9).
+>
+> **Fallback:** If `npm version` continues to fail (e.g. pnpm shim interference), edit the `"version"` field in each `package.json` directly with the Edit tool — it is equivalent and always reliable.
 
 Verify that all four files now show the new version:
 
@@ -91,22 +97,27 @@ grep '"version"' packages/*/package.json
 
 ---
 
-## Step 5 — Update cross-package dependency ranges in `aem-config`
+## Step 5 — Update cross-package dependency ranges
+
+### `packages/aem-config/package.json` — plugin deps
 
 `packages/aem-config/package.json` declares the three plugin packages as `dependencies`. Update their version ranges to `^<new-version>`:
 
-Edit `packages/aem-config/package.json` — find the `dependencies` block and change:
-```json
-"@aemvite/vite-plugin-aem-clientlib": "^<old-version>",
-"@aemvite/vite-plugin-aem-resources": "^<old-version>",
-"@aemvite/vite-plugin-glob": "^<old-version>",
-```
-to:
 ```json
 "@aemvite/vite-plugin-aem-clientlib": "^<new-version>",
 "@aemvite/vite-plugin-aem-resources": "^<new-version>",
 "@aemvite/vite-plugin-glob": "^<new-version>",
 ```
+
+### `aemviteexample/ui.frontend/package.json` — reference consumer
+
+This is the second example consumer (installs `@aemvite/aem-config` as a real npm version, not via `file:`). Update its `devDependencies` entry:
+
+```json
+"@aemvite/aem-config": "^<new-version>",
+```
+
+> `aemvite/ui.frontend/package.json` uses `file:` links and has no version number — leave it untouched.
 
 ---
 
@@ -178,6 +189,7 @@ git add \
   packages/vite-plugin-aem-clientlib/package.json \
   packages/vite-plugin-glob/package.json \
   packages/vite-plugin-aem-resources/package.json \
+  aemviteexample/ui.frontend/package.json \
   CHANGELOG.md \
   packages/aem-config/CHANGELOG.md \
   packages/vite-plugin-aem-clientlib/CHANGELOG.md \
