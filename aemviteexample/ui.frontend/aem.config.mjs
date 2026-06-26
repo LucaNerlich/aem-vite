@@ -10,7 +10,7 @@ export default defineAemConfig({
     '../ui.apps/src/main/content/jcr_root/apps/aemviteexample/clientlibs',
   ),
   build: {
-    target: 'es2021',
+    target: 'es2026',
   },
   clientlibs: [
     {
@@ -25,8 +25,8 @@ export default defineAemConfig({
       dependencies: ['aemviteexample.dependencies'],
       resources: ['src/main/frontend/resources'],
       build: {
-        minify: { js: true, css: true },
-        sourcemap: false,
+        minify: { js: false, css: false },
+        sourcemap: true,
       },
     },
   ],

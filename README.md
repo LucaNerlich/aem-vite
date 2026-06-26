@@ -240,7 +240,7 @@ export default defineAemConfig({
   // Optional global build overrides (lowest precedence above the mode
   // baseline). Use this to set a project-wide JS/CSS target.
   build: {
-    target: 'es2021',
+    target: 'es2026',
   },
 
   // Optional escape hatch for advanced builds — extra Vite plugins applied to
