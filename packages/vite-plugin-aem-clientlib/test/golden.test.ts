@@ -107,6 +107,15 @@ describe('classifyFile', () => {
     expect(classifyFile('logo.svg')).toBe('resources');
     expect(classifyFile('font.woff2')).toBe('resources');
   });
+
+  it('routes sourcemap siblings to the resources bucket', () => {
+    // `.map` files live under `resources/sourcemaps/` so AEM serves them as
+    // plain static files (not aggregated like `js/`/`css/`).
+    expect(classifyFile('site.js.map')).toBe('resources');
+    expect(classifyFile('SITE.JS.MAP')).toBe('resources');
+    expect(classifyFile('site.css.map')).toBe('resources');
+    expect(classifyFile('SITE.CSS.MAP')).toBe('resources');
+  });
 });
 
 describe('emitClientlib (file layout)', () => {
@@ -174,5 +183,45 @@ describe('emitClientlib (file layout)', () => {
       /* expected */
     }
     expect(resourcesExists).toBe(false);
+  });
+
+  it('routes .js.map / .css.map under resources/sourcemaps/ and excludes them from txt manifests', async () => {
+    const outDir = join(workDir, 'out4');
+    const fakeSrc = join(workDir, 'fake-src');
+    const siteSrcJsMap = join(fakeSrc, 'site.js.map');
+    const siteSrcCssMap = join(fakeSrc, 'site.css.map');
+    await writeFile(siteSrcJsMap, '{"version":3,"sources":[]}\n', 'utf8');
+    await writeFile(siteSrcCssMap, '{"version":3,"sources":[]}\n', 'utf8');
+
+    const result = await emitClientlib({
+      outDir,
+      clientlib: SITE_LIB,
+      // Callers stage maps with a nested basename so they nest under
+      // `resources/sourcemaps/` in the emitted layout.
+      files: [
+        { source: siteSrcJs, basename: 'site.js' },
+        { source: siteSrcCss, basename: 'site.css' },
+        { source: siteSrcJsMap, basename: 'sourcemaps/site.js.map' },
+        { source: siteSrcCssMap, basename: 'sourcemaps/site.css.map' },
+      ],
+    });
+
+    // Maps land under resources/sourcemaps/, not in the js/ or css/ buckets.
+    await stat(join(outDir, 'clientlib-site', 'resources', 'sourcemaps', 'site.js.map'));
+    await stat(join(outDir, 'clientlib-site', 'resources', 'sourcemaps', 'site.css.map'));
+
+    // txt manifests must not list the maps — AEM would try to load them.
+    const jsTxt = await readFile(join(outDir, 'clientlib-site', 'js.txt'), 'utf8');
+    const cssTxt = await readFile(join(outDir, 'clientlib-site', 'css.txt'), 'utf8');
+    expect(jsTxt).toBe('#base=js\n\nsite.js');
+    expect(cssTxt).toBe('#base=css\n\nsite.css');
+
+    // EmitResult should expose only the txt-listed code files (no maps).
+    expect(result.jsFiles).toEqual(['site.js']);
+    expect(result.cssFiles).toEqual(['site.css']);
+    expect(result.resourceFiles).toEqual([
+      'sourcemaps/site.js.map',
+      'sourcemaps/site.css.map',
+    ]);
   });
 });

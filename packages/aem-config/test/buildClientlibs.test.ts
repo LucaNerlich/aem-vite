@@ -101,3 +101,105 @@ export default {
     expect(existsSync(path.join(dir, "plugin-ran.marker"))).toBe(true);
   });
 });
+
+/**
+ * When a clientlib opts into sourcemaps via `build.sourcemap: true`, Vite
+ * emits `*.js.map` (and possibly `*.css.map`) into the staging dir. Those
+ * must land next to the owning JS/CSS in the final clientlib so the
+ * browser-relative `sourceMappingURL` resolves, while staying out of
+ * `js.txt` / `css.txt` so AEM does not try to load them as scripts.
+ */
+describe("buildClientlibs (sourcemap)", () => {
+  let dir: string;
+  let outRoot: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "aemvite-build-sm-"));
+    outRoot = path.join(dir, "clientlibs");
+
+    await mkdir(path.join(dir, "src"), { recursive: true });
+    await writeFile(
+      path.join(dir, "src", "main.ts"),
+      "export const value: number = 1;\n",
+    );
+
+    const configSrc = `
+export default {
+  clientLibRoot: ${JSON.stringify(outRoot)},
+  clientlibs: [
+    {
+      name: 'site',
+      entry: 'src/main.ts',
+      categories: ['proj.site'],
+      build: { minify: false, sourcemap: true },
+    },
+  ],
+};
+`;
+    await writeFile(path.join(dir, "aem.config.mjs"), configSrc);
+
+    await buildClientlibs({
+      mode: "production",
+      configPath: path.join(dir, "aem.config.mjs"),
+    });
+  });
+
+  afterAll(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("emits site.js.map under resources/sourcemaps/ (not next to site.js)", () => {
+    expect(existsSync(path.join(outRoot, "clientlib-site", "js", "site.js"))).toBe(true);
+    expect(
+      existsSync(
+        path.join(outRoot, "clientlib-site", "resources", "sourcemaps", "site.js.map"),
+      ),
+    ).toBe(true);
+    // Must NOT live in the js/ bucket — AEM's aggregator would try to load it
+    // as a script and Sling URL decomposition would 404 the proxy path.
+    expect(
+      existsSync(path.join(outRoot, "clientlib-site", "js", "site.js.map")),
+    ).toBe(false);
+  });
+
+  it("does not list .map files in js.txt", async () => {
+    const jsTxt = await readFile(
+      path.join(outRoot, "clientlib-site", "js.txt"),
+      "utf8",
+    );
+    expect(jsTxt).toBe("#base=js\n\nsite.js");
+    expect(jsTxt).not.toContain(".map");
+  });
+
+  it("rewrites sourceMappingURL to the resources/sourcemaps path AEM serves", async () => {
+    const js = await readFile(
+      path.join(outRoot, "clientlib-site", "js", "site.js"),
+      "utf8",
+    );
+    expect(js).toContain(
+      "sourceMappingURL=clientlib-site/resources/sourcemaps/site.js.map",
+    );
+    // Sanity: the original bare-basename URL must have been replaced.
+    expect(js).not.toMatch(/sourceMappingURL=site\.js\.map\b/);
+  });
+
+  it("rewrites sourcemap sources[] to aemvite://<clientlib>/<project-relative> URLs", async () => {
+    const map = JSON.parse(
+      await readFile(
+        path.join(outRoot, "clientlib-site", "resources", "sourcemaps", "site.js.map"),
+        "utf8",
+      ),
+    );
+    expect(Array.isArray(map.sources)).toBe(true);
+    expect(map.sources.length).toBeGreaterThan(0);
+    for (const src of map.sources as string[]) {
+      // Clean virtual URL — no leading `../`, no disk-path resolution attempts
+      // in DevTools, and groups sources under a stable `aemvite://site/` tree.
+      expect(src.startsWith("aemvite://site/")).toBe(true);
+      expect(src.includes("../")).toBe(false);
+    }
+    // The known source file from this fixture should land at its
+    // project-relative path under the virtual root.
+    expect(map.sources).toContain("aemvite://site/src/main.ts");
+  });
+});

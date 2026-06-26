@@ -17,13 +17,19 @@ import type {
  * - `.content.xml` (always)
  * - `js.txt`       (always)
  * - `css.txt`      (always)
- * - `js/<file>`         for each `*.js` source file
- * - `css/<file>`        for each `*.css` source file
+ * - `js/<file>`         for each `*.js` source file (and `*.js.map` siblings)
+ * - `css/<file>`        for each `*.css` source file (and `*.css.map` siblings)
  * - `resources/<file>`  for each other source file
  *
  * `js/`, `css/`, and `resources/` sub-folders are only created when at least
  * one file is bucketed into them — this matches the golden reference, which
  * has no empty directories.
+ *
+ * Sourcemap files (`*.map`) are routed to `resources/` (see `classifyFile`)
+ * so AEM's clientlib aggregator never tries to load them as scripts and
+ * Sling URL decomposition does not 404 them. They are also excluded from
+ * `js.txt` / `css.txt` as a defensive measure should a caller pass a `.map`
+ * with a non-default basename.
  *
  * The target clientlib directory is wiped before writing to guarantee a
  * clean, deterministic layout per build.
@@ -54,10 +60,13 @@ export async function emitClientlib(
     renderContentXml(clientlib),
     'utf8',
   );
-  const jsNames = jsFiles.map((f) => f.basename);
-  const cssNames = cssFiles.map((f) => f.basename);
-  await writeFile(join(clientlibDir, 'js.txt'), renderJsTxt(jsNames), 'utf8');
-  await writeFile(join(clientlibDir, 'css.txt'), renderCssTxt(cssNames), 'utf8');
+  // Sourcemap siblings live in the same bucket as their owner on disk, but
+  // must not appear in the txt manifests — AEM would otherwise try to load
+  // them as scripts/stylesheets.
+  const jsTxtNames = jsFiles.map((f) => f.basename).filter((n) => !isMap(n));
+  const cssTxtNames = cssFiles.map((f) => f.basename).filter((n) => !isMap(n));
+  await writeFile(join(clientlibDir, 'js.txt'), renderJsTxt(jsTxtNames), 'utf8');
+  await writeFile(join(clientlibDir, 'css.txt'), renderCssTxt(cssTxtNames), 'utf8');
 
   await copyBucket(clientlibDir, 'js', jsFiles);
   await copyBucket(clientlibDir, 'css', cssFiles);
@@ -65,10 +74,14 @@ export async function emitClientlib(
 
   return {
     clientlibDir,
-    jsFiles: jsNames,
-    cssFiles: cssNames,
+    jsFiles: jsTxtNames,
+    cssFiles: cssTxtNames,
     resourceFiles: resourceFiles.map((f) => f.basename),
   };
+}
+
+function isMap(basename: string): boolean {
+  return basename.toLowerCase().endsWith('.map');
 }
 
 /**

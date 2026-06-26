@@ -1,5 +1,6 @@
 import path from "node:path";
-import { readdir, rm } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import type { InlineConfig } from "vite";
 import { loadAemConfig } from "./loadAemConfig.js";
 import { resolveBuildOptions } from "./resolveBuildOptions.js";
@@ -72,6 +73,10 @@ export async function buildClientlibs(
           mergeConfig,
         }),
       );
+      // When Vite emitted external sourcemaps, rewrite the `sourceMappingURL`
+      // comment in the staged .js/.css to point at the resources path AEM
+      // will actually serve them from (see `collectStagedFiles`).
+      await rewriteSourceMappingUrls(stagingDir, clientlib.name);
       await collectStagedFiles(stagingDir, files);
     }
 
@@ -97,6 +102,9 @@ function buildInlineConfig(
 ): InlineConfig {
   const entry = path.resolve(configDir, clientlib.entry);
   const resolved = resolveBuildOptions(mode, config.build, clientlib.build);
+  // Resolve symlinks (e.g. macOS `/var` → `/private/var`) so the sourcemap
+  // path transform can reconcile with Rollup's real-path source references.
+  const realConfigDir = realpathOrSelf(configDir);
   const resourceEntries = (clientlib.resources ?? []).map((from) => ({
     from: path.resolve(configDir, from),
   }));
@@ -135,6 +143,23 @@ function buildInlineConfig(
             (info.name ?? "").toLowerCase().endsWith(".css")
               ? `${clientlib.name}.css`
               : "[name][extname]",
+          // Rewrite sourcemap `sources[]` to a stable virtual URL rooted at
+          // the consumer project so DevTools (a) doesn't try to fetch the
+          // original files from the served `.js` path (where they don't
+          // exist) and (b) groups them under a clean `aemvite://<clientlib>/`
+          // tree in the Sources panel. `relativeSourcePath` is relative to
+          // the emitted `.map` file (i.e. the staging dir). We anchor on
+          // `stagingDir` and use the real (symlink-resolved) project root so
+          // paths reconcile cleanly on macOS where `/var` → `/private/var`.
+          // Vite/Rollup only invokes this when sourcemaps are emitted.
+          sourcemapPathTransform: (relativeSourcePath: string): string => {
+            const abs = path.resolve(stagingDir, relativeSourcePath);
+            const rel = path
+              .relative(realConfigDir, abs)
+              .split(path.sep)
+              .join("/");
+            return `aemvite://${clientlib.name}/${rel}`;
+          },
         },
       },
     },
@@ -145,18 +170,40 @@ function buildInlineConfig(
   return inlineConfig;
 }
 
-/** Stage the per-entry JS/CSS plus any copied `resources/` tree. */
+/**
+ * Stage the per-entry JS/CSS plus any copied `resources/` tree, and route any
+ * sourcemap siblings (`*.js.map` / `*.css.map`) under `resources/sourcemaps/`
+ * so AEM serves them as plain static files. The emitter's `resources` bucket
+ * preserves the nested `sourcemaps/` prefix from the basename.
+ *
+ * AEM's clientlib aggregator concatenates `js/` / `css/` contents into one
+ * served response, and Sling URL decomposition (`site.js.map` → selectors=js,
+ * extension=map) 404s the top-level proxy path. Routing maps through the
+ * `resources/` subtree avoids both problems — the `sourceMappingURL` comment
+ * in the JS/CSS is rewritten to match (see `rewriteSourceMappingUrls`).
+ */
 async function collectStagedFiles(
   stagingDir: string,
   files: StagedFile[],
 ): Promise<void> {
   for (const entry of await readdir(stagingDir, { withFileTypes: true })) {
     if (!entry.isFile()) continue;
-    const ext = path.extname(entry.name).toLowerCase();
-    if (ext === ".js" || ext === ".css") {
+    const lower = entry.name.toLowerCase();
+    const ext = path.extname(lower);
+    const isCodeFile = ext === ".js" || ext === ".css";
+    const isSourcemap =
+      lower.endsWith(".js.map") || lower.endsWith(".css.map");
+    if (isCodeFile) {
       files.push({
         source: path.join(stagingDir, entry.name),
         basename: entry.name,
+      });
+    } else if (isSourcemap) {
+      // Nested basename routes the map to `resources/sourcemaps/<file>` via
+      // the emitter's `resources` bucket (classifyFile routes `.map` there).
+      files.push({
+        source: path.join(stagingDir, entry.name),
+        basename: `sourcemaps/${entry.name}`,
       });
     }
   }
@@ -164,6 +211,62 @@ async function collectStagedFiles(
   const resourcesDir = path.join(stagingDir, "resources");
   for (const rel of await walk(resourcesDir)) {
     files.push({ source: path.join(resourcesDir, rel), basename: rel });
+  }
+}
+
+/**
+ * Rewrite the `sourceMappingURL` comment in every staged `.js` / `.css` so it
+ * points at the AEM-served resources path where `collectStagedFiles` will
+ * deposit the corresponding `.map`. The browser resolves `sourceMappingURL`
+ * relative to the served code URL; for an AEM clientlib aggregated at
+ * `/etc.clientlibs/<proj>/clientlibs/clientlib-<name>.js`, a relative URL of
+ * `clientlib-<name>/resources/sourcemaps/<file>.map` resolves to the static
+ * resource served by AEM at the same path.
+ *
+ * Vite emits the comment as the final line(s) of the file:
+ *   JS:  `//# sourceMappingURL=site.js.map`
+ *   CSS: `/*# sourceMappingURL=site.css.map *\/`
+ * We rewrite only the URL token, leaving everything else untouched.
+ */
+async function rewriteSourceMappingUrls(
+  stagingDir: string,
+  clientlibName: string,
+): Promise<void> {
+  let entries;
+  try {
+    entries = await readdir(stagingDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    const lower = entry.name.toLowerCase();
+    if (lower.endsWith(".map")) continue;
+    if (!lower.endsWith(".js") && !lower.endsWith(".css")) continue;
+    const full = path.join(stagingDir, entry.name);
+    const content = await readFile(full, "utf8");
+    const mapName = `${entry.name}.map`;
+    const newUrl =
+      `clientlib-${clientlibName}/resources/sourcemaps/${mapName}`;
+    let rewritten = content.replace(
+      /\/\/# sourceMappingURL=[^\s]+/,
+      `//# sourceMappingURL=${newUrl}`,
+    );
+    rewritten = rewritten.replace(
+      /\/\*# sourceMappingURL=[^\s]+ \*\//,
+      `/*# sourceMappingURL=${newUrl} */`,
+    );
+    if (rewritten !== content) {
+      await writeFile(full, rewritten, "utf8");
+    }
+  }
+}
+
+function realpathOrSelf(p: string): string {
+  try {
+    return realpathSync(p);
+  } catch {
+    return p;
   }
 }
 

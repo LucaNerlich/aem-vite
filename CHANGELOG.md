@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-06-26
+
+### Added
+- Sourcemap support: Vite external sourcemaps are now routed to `resources/sourcemaps/` inside each clientlib so AEM serves them as plain static files. The `sourceMappingURL` comment in emitted JS/CSS is rewritten to the AEM-served path, and sourcemap `sources[]` entries are remapped to `aemvite://<clientlib>/` virtual URLs for clean DevTools organisation.
+
+### Changed
+- ES build target updated to `es2026`.
+- `@aemvite/vite-plugin-*` dependency ranges in `@aemvite/aem-config` bumped to `^0.4.0`.
+- All four packages unified at `0.4.0`.
+
 ## [0.3.1] - 2026-06-26
 
 ### Added

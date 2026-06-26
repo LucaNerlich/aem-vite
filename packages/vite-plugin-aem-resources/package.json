@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/vite-plugin-aem-resources",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Vite plugin that copies an AEM clientlib resources/ tree into the build output, skipping .gitkeep-only / empty sources.",
   "keywords": [
     "aem",

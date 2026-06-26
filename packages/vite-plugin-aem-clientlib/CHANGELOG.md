@@ -6,6 +6,12 @@ documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-26
+
+### Added
+- `classifyFile` now routes `.js.map` and `.css.map` files to the `resources/` bucket so AEM's clientlib aggregator never tries to load them as scripts and Sling URL decomposition does not 404 them at the clientlib proxy path.
+- Sourcemap files are excluded from `js.txt` / `css.txt` manifests as a defensive measure.
+
 ## [0.1.0] - 2026-06-25
 
 ### Added

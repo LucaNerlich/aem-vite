@@ -5,6 +5,17 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-26
+
+### Added
+- Sourcemap support in the build orchestrator: external sourcemaps emitted by Vite are staged under `resources/sourcemaps/` and `sourceMappingURL` comments in JS/CSS are rewritten to point at the AEM-served resources path.
+- `sourcemapPathTransform` in Rollup output options rewrites `sources[]` entries to `aemvite://<clientlib>/` virtual URLs for clean DevTools grouping.
+- Symlink resolution via `realpathOrSelf` so path transforms work correctly on macOS where `/var` resolves to `/private/var`.
+
+### Changed
+- Plugin dependency ranges bumped to `^0.4.0`.
+- ES build target updated to `es2026`.
+
 ## [0.3.1] - 2026-06-26
 
 ### Added
