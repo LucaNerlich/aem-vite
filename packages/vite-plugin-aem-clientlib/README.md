@@ -138,7 +138,7 @@ const css = renderCssTxt([]);          // "#base=css\n\n"
 | `renderTxt` | `(base: string, files: readonly string[]) => string` | Render a generic `#base=<base>\n\n<file>\n…` index (no trailing newline). |
 | `renderJsTxt` | `(files: readonly string[]) => string` | Shortcut for `renderTxt("js", files)`. |
 | `renderCssTxt` | `(files: readonly string[]) => string` | Shortcut for `renderTxt("css", files)`. |
-| `classifyFile` | `(filename: string) => "js" \| "css" \| "resources"` | Case-insensitive extension-based bucket classifier. |
+| `classifyFile` | `(filename: string) => "js" \| "css" \| "resources"` | Case-insensitive extension-based bucket classifier. `*.js.map` / `*.css.map` route to `resources` (see Notes & caveats). |
 | `emitClientlib` | `(options: EmitClientlibOptions) => Promise<EmitResult>` | Emit a single `clientlib-<name>/` folder to disk. Wipes the target directory first. |
 | `emitClientlibs` | `(outDir: string, clientlibs: Array<{ clientlib, files? }>) => Promise<EmitResult[]>` | Emit multiple clientlibs into the same `outDir`. |
 | `aemClientlibPlugin` | `(options: AemClientlibPluginOptions) => VitePluginLike` | Vite plugin (`apply: "build"`) that runs `emitClientlibs` at `closeBundle`. |
@@ -192,6 +192,16 @@ const css = renderCssTxt([]);          // "#base=css\n\n"
   materialized when at least one file is bucketed into them. A clientlib whose
   `resources/` source contains only `.gitkeep` will not produce a
   `resources/` folder (matches the captured golden).
+- **Sourcemap routing.** `*.js.map` and `*.css.map` route to the `resources/`
+  bucket — never `js/` or `css/` — and are excluded from `js.txt` / `css.txt`.
+  This is required because AEM's clientlib aggregator concatenates everything
+  in `js/`/`css/` into the served response and Sling URL decomposition 404s
+  `.js.map` at the proxy root. Callers that want maps nested deeper pass a
+  `SourceFile.basename` with a leading path segment (e.g. `sourcemaps/site.js.map`);
+  `emitClientlib` honours nested basenames via `mkdir({ recursive: true })`.
+  `@aemvite/aem-config` uses this to land maps at `resources/sourcemaps/` and
+  rewrite the `sourceMappingURL` comment to match — see the
+  [root README](https://github.com/LucaNerlich/aem-vite#sourcemaps-when-enabled).
 - **Destructive emit.** `emitClientlib` calls `rm(clientlibDir, {
   recursive: true, force: true })` before writing. Don't aim it at a directory
   whose siblings you care about — `clientLibRoot` itself is preserved, but the

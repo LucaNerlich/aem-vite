@@ -170,6 +170,18 @@ asset and lets the other fall through to the next layer. So in production,
 
 `sourcemap` and `target` are simple overrides — the higher layer wins entirely.
 
+When `sourcemap` is `true` (or `"hidden"`), `buildClientlibs` post-processes
+the Vite output so the emitted `.map` files land at
+`clientlib-<name>/resources/sourcemaps/` (AEM serves them as static
+resources) and the `//# sourceMappingURL=` comment inside the staged `.js` /
+`.css` is rewritten to match. The `sources[]` array in each map is also
+rewritten to a virtual `aemvite://<clientlib>/<project-relative>` URL so the
+DevTools Sources tree is fetch-free, ignore-list-safe, and grouped by
+clientlib. `"inline"` skips this layout — the map lives inside the `.js` as a
+base64 data URI. See the
+[Sourcemaps section in the root README](https://github.com/LucaNerlich/aem-vite#sourcemaps-when-enabled)
+for the full on-disk layout, runtime resolution, and rationale.
+
 ### Global override
 
 ```ts

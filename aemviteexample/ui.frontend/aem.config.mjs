@@ -25,7 +25,7 @@ export default defineAemConfig({
       dependencies: ['aemviteexample.dependencies'],
       resources: ['src/main/frontend/resources'],
       build: {
-        minify: { js: false, css: false },
+        minify: { js: true, css: true },
         sourcemap: true,
       },
     },

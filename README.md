@@ -294,6 +294,75 @@ baselines (with no overrides) are:
 Field reference for every supported option lives in the
 [`@aemvite/aem-config` README](./packages/aem-config#config-shape).
 
+### Sourcemaps (when enabled)
+
+Setting `build.sourcemap: true` (or relying on the dev-mode baseline of
+`"inline"`) triggers an AEM-aware emit layout. External maps (`true` /
+`"hidden"`) land under the clientlib's `resources/` subtree so AEM can serve
+them as static files; `"inline"` skips that layout because everything is
+embedded inside the `.js`.
+
+**What lands on disk for `build.sourcemap: true`:**
+
+```
+clientlib-<name>/
+├── .content.xml
+├── js.txt           ← lists <name>.js only — never the .map
+├── css.txt          ← same
+├── js/<name>.js     ← trailing comment rewritten to
+│                       //# sourceMappingURL=clientlib-<name>/resources/sourcemaps/<name>.js.map
+├── css/<name>.css   ← /*# sourceMappingURL=… */ when CSS sourcemaps are on
+└── resources/
+    └── sourcemaps/
+        ├── <name>.js.map
+        └── <name>.css.map
+```
+
+`js.txt` and `css.txt` remain byte-identical to the archetype — `.map` files
+are never listed.
+
+**What you see in Chrome DevTools → Sources** once the bundle has loaded:
+
+```
+aemvite://
+└── <clientlib>/
+    └── src/main/frontend/components/_helloworld.js   ← your original file,
+                                                        served from the
+                                                        sourcemap's embedded
+                                                        sourcesContent
+```
+
+Set a breakpoint in `_helloworld.js` (or any other file you import); it fires
+against the bundled `<name>.js` at runtime with original line/column accuracy.
+Add more JS/TS files to your entry's graph and they appear under the same
+`aemvite://<clientlib>/` tree automatically — one entry per file that
+contributes runtime code to the bundle.
+
+**Why the funny placement under `resources/sourcemaps/`** (skip if "it works"
+is enough):
+
+1. **AEM's clientlib aggregator** concatenates everything in `js/` (and
+   `css/`) into the single served bundle response. A `.map` placed in `js/`
+   ends up as JSON spliced into the middle of your JavaScript — Chrome
+   rejects it with *"sourcemap skipped"*.
+2. **Sling URL decomposition.** `clientlib-<name>.js.map` requested at the
+   proxy root resolves as `selectors=[js], extension=map` → 404. Nesting
+   under `resources/sourcemaps/` produces an unambiguous resource path that
+   AEM serves verbatim.
+3. **DevTools tree pollution.** Default Rollup `sources[]` entries look like
+   `../../src/main/frontend/components/_helloworld.js`. DevTools tries to
+   fetch those relative to the bundle URL (404), and Chrome's auto-ignore
+   heuristic treats leading `../` as third-party. Rewriting `sources[]` to
+   `aemvite://<clientlib>/<project-relative>` gives a clean, fetch-free,
+   non-ignored Sources tree.
+
+`build.sourcemap: 'hidden'` writes the `.map` to the same path but omits the
+trailing `sourceMappingURL` comment, so the browser never asks for it (the
+file is still on disk for tools that find maps by convention).
+`build.sourcemap: 'inline'` skips the resources layout entirely — the map
+lives inside the `.js` as a base64 data URI, so AEM's proxy never sees a
+separate `.map` request.
+
 ### 4. Drive the build with the `aem-build` CLI
 
 There is **no build script to write** — `@aemvite/aem-config` ships an
