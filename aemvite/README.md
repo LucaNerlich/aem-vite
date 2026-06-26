@@ -11,7 +11,7 @@ The main parts of the template are:
 * [ui.apps:](ui.apps/README.md) contains the /apps (and /etc) parts of the project, ie JS&CSS clientlibs, components, and templates
 * [ui.content:](ui.content/README.md) contains sample content using the components from the ui.apps
 * ui.config: contains runmode specific OSGi configs for the project
-* [ui.frontend:](ui.frontend.general/README.md) an optional dedicated front-end build mechanism (Angular, React or general Webpack project)
+* [ui.frontend:](ui.frontend/README.md) Vite + esbuild + Sass frontend build, wired through the [`@aemvite/*`](../packages) toolchain (replaces webpack + `aem-clientlib-generator`)
 * [ui.tests:](ui.tests/README.md) Cypress based UI tests (for other frameworks check [aem-test-samples](https://github.com/adobe/aem-test-samples) repository
 * all: a single content package that embeds all of the compiled modules (bundles and content packages) including any vendor dependencies
 * analyse: this module runs analysis on the project which provides additional validation for deploying into AEMaaCS
@@ -107,15 +107,15 @@ Examples of UI tests in different frameworks can be found here: https://github.c
 
 ## ClientLibs
 
-The frontend module is made available using an [AEM ClientLib](https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/clientlibs.html). When executing the NPM build script, the app is built and the [`aem-clientlib-generator`](https://github.com/wcm-io-frontend/aem-clientlib-generator) package takes the resulting build output and transforms it into such a ClientLib.
+The frontend module emits standard [AEM ClientLibs](https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/clientlibs.html). The Vite build (driven by `@aemvite/aem-config`'s `aem-build` CLI) writes the descriptor files and asset layout directly into `ui.apps`, byte-identical to what `aem-clientlib-generator` used to produce. See [`ui.frontend/README.md`](ui.frontend/README.md) for the build pipeline and the repo-root [`MIGRATION.md`](../MIGRATION.md) for how to migrate an existing webpack-based `ui.frontend`.
 
-A ClientLib will consist of the following files and directories:
+A ClientLib consists of the following files and directories:
 
 - `css/`: CSS files which can be requested in the HTML
 - `css.txt` (tells AEM the order and names of files in `css/` so they can be merged)
 - `js/`: JavaScript files which can be requested in the HTML
-- `js.txt` (tells AEM the order and names of files in `js/` so they can be merged
-- `resources/`: Source maps, non-entrypoint code chunks (resulting from code splitting), static assets (e.g. icons), etc.
+- `js.txt` (tells AEM the order and names of files in `js/` so they can be merged)
+- `resources/`: static assets (e.g. icons) — only emitted when the source `resources/` tree contains real files
 
 ## Maven settings
 

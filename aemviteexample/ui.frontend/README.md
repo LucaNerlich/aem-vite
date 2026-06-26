@@ -121,7 +121,7 @@ Replace every webpack-related entry with a single dependency on `@aemvite/aem-co
     "prod": "aem-build --mode prod --config aem.config.mjs"
   },
   "devDependencies": {
-    "@aemvite/aem-config": "^0.2.2",
+    "@aemvite/aem-config": "^0.3.1",
     "sass": "^1.101.0",
     "typescript": "^5.6.0"
   }

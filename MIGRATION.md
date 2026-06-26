@@ -266,7 +266,7 @@ looking like this:
     "test": "vitest run"
   },
   "devDependencies": {
-    "@aemvite/aem-config": "^0.2.2",
+    "@aemvite/aem-config": "^0.3.1",
     "sass":                "^1.77.0",
     "vite":                "^8.1.0",
     "vitest":              "^4.1.9"
@@ -318,7 +318,7 @@ export default defineAemConfig({
 
   // Optional project-wide build overrides. Per-clientlib `build` wins.
   build: {
-    target: 'es2015',
+    target: 'es2021',
   },
 
   clientlibs: [

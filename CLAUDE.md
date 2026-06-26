@@ -58,7 +58,7 @@ npm run dev           # aem-build --mode dev  --config aem.config.mjs  → no mi
 
 - **npm vs pnpm.** Root `package.json` declares `"packageManager": "pnpm@10.33.4"`, but this repo is built and published as an **npm workspaces** monorepo. Corepack shims can silently route `npm` through `pnpm`, and pnpm **ignores `npm`'s `-w <name>` flag and publishes nothing**. When a workspace command misbehaves, prefix with `command npm` to bypass shims, or `cd` into the package directory.
 - **Publishing is automated via CI**, not manual. Pushing a `v*` tag triggers `.github/workflows/publish.yml`, which uses npm OIDC trusted publishing (no NPM_TOKEN/OTP) and publishes in mandatory dependency order: `vite-plugin-aem-clientlib` → `vite-plugin-glob` → `vite-plugin-aem-resources` → `aem-config` (last, since it depends on the clientlib package being resolvable). The README's manual `npm publish` section is a fallback. `prepublishOnly` runs `tsc` automatically.
-- **Version bumps** ripple: `aem-config` pins all three plugin packages at `^0.1.0`, so bumping any of them may require bumping the range in `aem-config` too. `aem-config` itself is now `0.2.0`.
+- **Version bumps** ripple: `aem-config` pins all three plugin packages at `^0.2.0`, so bumping any of them may require bumping the range in `aem-config` too. `aem-config` itself is now `0.3.1`.
 - **Node engines** are pinned to `^20.19.0 || >=22.12.0` (Vite 8). `vite` and `esbuild` are peer/optional-peer deps — consumers must install them explicitly.
 - **Supply-chain hardening** in `.npmrc`: `minimum-release-age=10080` (7-day quarantine on new releases) and `block-exotic-subdeps=true`. Expect freshly published deps to be uninstallable for a week.
 
