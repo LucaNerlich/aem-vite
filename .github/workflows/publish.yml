@@ -62,7 +62,7 @@ jobs:
       # (e.g. re-running a tag), it skips instead of hard-failing.
       # NOTE: no NODE_AUTH_TOKEN / no .npmrc token — OIDC trusted publishing
       # supplies credentials and provenance automatically.
-      - name: Publish @aemvite/vite-plugin-aem-clientlib (1/4)
+      - name: Publish @aemvite/vite-plugin-aem-clientlib (1/5)
         run: |
           NAME=$(node -p "require('./packages/vite-plugin-aem-clientlib/package.json').name")
           VERSION=$(node -p "require('./packages/vite-plugin-aem-clientlib/package.json').version")
@@ -73,7 +73,7 @@ jobs:
             npm publish --access public -w @aemvite/vite-plugin-aem-clientlib
           fi
 
-      - name: Publish @aemvite/vite-plugin-glob (2/4)
+      - name: Publish @aemvite/vite-plugin-glob (2/5)
         run: |
           NAME=$(node -p "require('./packages/vite-plugin-glob/package.json').name")
           VERSION=$(node -p "require('./packages/vite-plugin-glob/package.json').version")
@@ -84,7 +84,7 @@ jobs:
             npm publish --access public -w @aemvite/vite-plugin-glob
           fi
 
-      - name: Publish @aemvite/vite-plugin-aem-resources (3/4)
+      - name: Publish @aemvite/vite-plugin-aem-resources (3/5)
         run: |
           NAME=$(node -p "require('./packages/vite-plugin-aem-resources/package.json').name")
           VERSION=$(node -p "require('./packages/vite-plugin-aem-resources/package.json').version")
@@ -95,7 +95,18 @@ jobs:
             npm publish --access public -w @aemvite/vite-plugin-aem-resources
           fi
 
-      - name: Publish @aemvite/aem-config (4/4 — LAST, depends on the others)
+      - name: Publish @aemvite/vite-plugin-aem-css-url-passthrough (4/5)
+        run: |
+          NAME=$(node -p "require('./packages/vite-plugin-aem-css-url-passthrough/package.json').name")
+          VERSION=$(node -p "require('./packages/vite-plugin-aem-css-url-passthrough/package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            npm publish --access public -w @aemvite/vite-plugin-aem-css-url-passthrough
+          fi
+
+      - name: Publish @aemvite/aem-config (5/5 — LAST, depends on the others)
         run: |
           NAME=$(node -p "require('./packages/aem-config/package.json').name")
           VERSION=$(node -p "require('./packages/aem-config/package.json').version")
