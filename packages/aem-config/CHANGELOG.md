@@ -5,6 +5,14 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-26
+
+### Changed
+
+- **Breaking:** minimum Node.js tightened to `^22`; Vite peer narrowed to `^8`.
+- Plugin package dependency ranges updated to `^0.2.0`.
+- `esbuild` peer tightened to `^0.28`.
+
 ## [0.2.2] - 2026-06-26
 
 ### Changed

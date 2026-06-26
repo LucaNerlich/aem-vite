@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-06-26
+
+### Changed
+- **Breaking:** minimum Node.js version tightened to `^22` (dropped Node 20). Vite 8 + rolldown require Node 22; the previous `^20.19.0 || >=22.12.0` range was overly broad.
+- **Breaking:** Vite peer dependency narrowed to `^8` (dropped Vite 7) across all four packages.
+- `@aemvite/aem-config` peer dep ranges updated to `^0.2.0` for all three plugin packages.
+- `@aemvite/vite-plugin-glob`: `tinyglobby` bumped from `^0.2.10` to `^0.2.17`.
+- `esbuild` peer in `@aemvite/aem-config` tightened to `^0.28` (matches Vite 8's own range).
+
 ## [0.2.2] - 2026-06-26
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/vite-plugin-aem-clientlib",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vite plugin and descriptor emitter for AEM clientlibs — byte-identical .content.xml, js.txt, css.txt.",
   "keywords": [
     "aem",
@@ -39,7 +39,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
