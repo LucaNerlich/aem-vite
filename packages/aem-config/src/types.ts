@@ -3,6 +3,19 @@ import type { PluginOption, UserConfig } from "vite";
 export type ProcessorList = readonly string[];
 
 /**
+ * Toggle / configure the CSS `url()` passthrough plugin
+ * (`@aemvite/vite-plugin-aem-css-url-passthrough`). When truthy, the plugin
+ * is auto-wired into each clientlib's build.
+ *
+ * - `true` — wire with default `resourceDirs` (`["images", "fonts"]`).
+ * - `false` — explicitly disable (overrides a global `true`).
+ * - object — wire with the supplied options.
+ */
+export type CssUrlPassthroughOption =
+  | boolean
+  | { resourceDirs?: readonly string[] };
+
+/**
  * Author-facing build options. Each field is optional and overlays on top of
  * the mode baseline (development/production) and the global `AemConfig.build`.
  *
@@ -50,6 +63,12 @@ export interface AemClientlib {
   /** Per-clientlib build overrides; layered over `AemConfig.build`. */
   build?: BuildOptions;
   /**
+   * Per-clientlib override for the CSS `url()` passthrough plugin. Takes
+   * precedence over the global `AemConfig.cssUrlPassthrough`. Set explicitly
+   * to `false` to opt out when the global is enabled.
+   */
+  cssUrlPassthrough?: CssUrlPassthroughOption;
+  /**
    * Extra Vite plugins applied to this clientlib's build, after the built-in
    * `aemViteGlob` / `aemResources` and after `AemConfig.plugins`. Lets advanced
    * adopters inject e.g. a framework plugin without writing a build script.
@@ -72,6 +91,14 @@ export interface AemConfig {
   /** Global build options applied to every clientlib (overridden per-clientlib). */
   build?: BuildOptions;
   /**
+   * Auto-wire `@aemvite/vite-plugin-aem-css-url-passthrough` into every
+   * clientlib build. Restores webpack `css-loader: { url: false }` semantics:
+   * rewrites every `url(...)` containing `resources/<sub>/` back to the
+   * canonical `../resources/<sub>/<file>` form. Override per-clientlib via
+   * `AemClientlib.cssUrlPassthrough`.
+   */
+  cssUrlPassthrough?: CssUrlPassthroughOption;
+  /**
    * Extra Vite plugins applied to every clientlib build, after the built-in
    * `aemViteGlob` / `aemResources` and before any per-clientlib `plugins`.
    */
@@ -93,6 +120,8 @@ export interface ResolvedAemConfig {
   clientlibs: ResolvedAemClientlib[];
   /** Raw global build options (resolved per-mode at build time). */
   build?: BuildOptions;
+  /** Global CSS `url()` passthrough toggle (resolved per-clientlib at build time). */
+  cssUrlPassthrough?: CssUrlPassthroughOption;
   /** Global extra Vite plugins (applied to every clientlib build). */
   plugins?: PluginOption[];
   /** Global deep Vite config override. */

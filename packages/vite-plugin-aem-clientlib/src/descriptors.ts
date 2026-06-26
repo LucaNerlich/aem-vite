@@ -22,8 +22,8 @@ function encodeArray(values: readonly string[]): string {
  * archetype output (single trailing `\n`).
  *
  * Attribute order is locked: `jcr:primaryType`, `categories`, `dependencies`?,
- * `cssProcessor`, `jsProcessor`, `allowProxy`. The `dependencies` attribute is
- * omitted when empty or undefined.
+ * `embed`?, `cssProcessor`, `jsProcessor`, `allowProxy`. The `dependencies`
+ * and `embed` attributes are omitted when empty or undefined.
  */
 export function renderContentXml(def: ClientlibDefinition): string {
   if (!def.categories || def.categories.length === 0) {
@@ -42,6 +42,9 @@ export function renderContentXml(def: ClientlibDefinition): string {
   lines.push(`    categories="${encodeArray(def.categories)}"`);
   if (def.dependencies && def.dependencies.length > 0) {
     lines.push(`    dependencies="${encodeArray(def.dependencies)}"`);
+  }
+  if (def.embed && def.embed.length > 0) {
+    lines.push(`    embed="${encodeArray(def.embed)}"`);
   }
   lines.push(`    cssProcessor="${encodeArray(cssProcessor)}"`);
   lines.push(`    jsProcessor="${encodeArray(jsProcessor)}"`);

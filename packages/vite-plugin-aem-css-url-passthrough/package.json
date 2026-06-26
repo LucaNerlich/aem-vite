@@ -1,14 +1,16 @@
 {
-  "name": "@aemvite/vite-plugin-aem-resources",
+  "name": "@aemvite/vite-plugin-aem-css-url-passthrough",
   "version": "0.5.0",
-  "description": "Vite plugin that copies an AEM clientlib resources/ tree into the build output, skipping .gitkeep-only / empty sources.",
+  "description": "Vite plugin that rewrites CSS url() references in built clientlib stylesheets back to ../resources/<sub>/<file> form, mirroring webpack css-loader { url: false } for AEM clientlibs.",
   "keywords": [
     "aem",
     "clientlib",
     "vite",
     "vite-plugin",
+    "css",
+    "url",
+    "css-loader",
     "resources",
-    "copy",
     "edge-delivery",
     "aemvite"
   ],
@@ -19,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
-    "directory": "packages/vite-plugin-aem-resources"
+    "directory": "packages/vite-plugin-aem-css-url-passthrough"
   },
   "license": "MIT",
   "author": "Luca Nerlich",

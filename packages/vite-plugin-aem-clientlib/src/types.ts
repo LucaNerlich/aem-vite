@@ -17,6 +17,8 @@ export interface ClientlibDefinition {
   categories: readonly string[];
   /** `dependencies="[...]"` — omitted entirely when empty/undefined. */
   dependencies?: readonly string[];
+  /** `embed="[...]"` — omitted entirely when empty/undefined. */
+  embed?: readonly string[];
   /** `cssProcessor="[...]"`. Default `["default:none","min:none"]`. */
   cssProcessor?: readonly string[];
   /** `jsProcessor="[...]"`. Default `["default:none","min:none"]`. */

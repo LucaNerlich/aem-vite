@@ -1,11 +1,11 @@
 ---
 name: aemvite-release
-description: Full release automation for the @aemvite monorepo — bumps all four package versions in unison, updates cross-dependency ranges, updates changelogs (root + per-package), updates version references in README.md and MIGRATION.md, commits, tags, pushes, and creates a GitHub release. Use this skill whenever the user says "release", "bump version", "cut a release", "new version", "tag a release", "prep a release", "ship it", or asks to publish the aemvite packages. Also trigger when the user mentions semver, changelog, or version bump in the context of this monorepo.
+description: Full release automation for the @aemvite monorepo — bumps all five package versions in unison, updates cross-dependency ranges, updates changelogs (root + per-package), updates version references in README.md and MIGRATION.md, commits, tags, pushes, and creates a GitHub release. Use this skill whenever the user says "release", "bump version", "cut a release", "new version", "tag a release", "prep a release", "ship it", or asks to publish the aemvite packages. Also trigger when the user mentions semver, changelog, or version bump in the context of this monorepo.
 ---
 
 # aemvite-release
 
-Full release automation for the `@aemvite/*` monorepo. All four packages always move to the same version in one shot — this matches how CI publishes them (atomically, on a single `v*` tag).
+Full release automation for the `@aemvite/*` monorepo. All five packages always move to the same version in one shot — this matches how CI publishes them (atomically, on a single `v*` tag).
 
 ## Packages released (unified versioning)
 
@@ -15,6 +15,7 @@ Full release automation for the `@aemvite/*` monorepo. All four packages always 
 | `@aemvite/vite-plugin-aem-clientlib` | `packages/vite-plugin-aem-clientlib/` |
 | `@aemvite/vite-plugin-glob` | `packages/vite-plugin-glob/` |
 | `@aemvite/vite-plugin-aem-resources` | `packages/vite-plugin-aem-resources/` |
+| `@aemvite/vite-plugin-aem-css-url-passthrough` | `packages/vite-plugin-aem-css-url-passthrough/` |
 
 ---
 
@@ -37,6 +38,7 @@ node -p "require('./packages/aem-config/package.json').version"
 node -p "require('./packages/vite-plugin-aem-clientlib/package.json').version"
 node -p "require('./packages/vite-plugin-glob/package.json').version"
 node -p "require('./packages/vite-plugin-aem-resources/package.json').version"
+node -p "require('./packages/vite-plugin-aem-css-url-passthrough/package.json').version"
 ```
 
 Find the last release tag and collect commits since then:
@@ -72,17 +74,18 @@ Show the user the proposed bump level and the new version string and **confirm b
 
 ---
 
-## Step 4 — Bump all four `package.json` versions
+## Step 4 — Bump all five `package.json` versions
 
 **Important:** Do NOT use `npm version` at the workspace root — the `pnpm` shim intercepts it and behaves incorrectly (see CLAUDE.md). Instead, `cd` into each package directory separately:
 
 ```bash
 # If the working tree is dirty (changes included in the release commit),
 # add --force to bypass npm's git-state check.
-(cd packages/aem-config              && npm version <bump> --no-git-tag-version --force)
-(cd packages/vite-plugin-aem-clientlib && npm version <bump> --no-git-tag-version --force)
-(cd packages/vite-plugin-glob          && npm version <bump> --no-git-tag-version --force)
-(cd packages/vite-plugin-aem-resources && npm version <bump> --no-git-tag-version --force)
+(cd packages/aem-config                       && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-clientlib         && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-glob                  && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-resources         && npm version <bump> --no-git-tag-version --force)
+(cd packages/vite-plugin-aem-css-url-passthrough && npm version <bump> --no-git-tag-version --force)
 ```
 
 > **Note:** `--no-git-tag-version` alone is not enough when the tree is dirty — npm still exits non-zero. `--force` suppresses that check; it is safe here because we never let npm create a tag (the skill handles tagging explicitly in Step 9).
@@ -101,10 +104,11 @@ grep '"version"' packages/*/package.json
 
 ### `packages/aem-config/package.json` — plugin deps
 
-`packages/aem-config/package.json` declares the three plugin packages as `dependencies`. Update their version ranges to `^<new-version>`:
+`packages/aem-config/package.json` declares all four plugin packages as `dependencies`. Update all their version ranges to `^<new-version>`:
 
 ```json
 "@aemvite/vite-plugin-aem-clientlib": "^<new-version>",
+"@aemvite/vite-plugin-aem-css-url-passthrough": "^<new-version>",
 "@aemvite/vite-plugin-aem-resources": "^<new-version>",
 "@aemvite/vite-plugin-glob": "^<new-version>",
 ```
@@ -155,6 +159,7 @@ Per-package changelog paths:
 - `packages/vite-plugin-aem-clientlib/CHANGELOG.md`
 - `packages/vite-plugin-glob/CHANGELOG.md`
 - `packages/vite-plugin-aem-resources/CHANGELOG.md`
+- `packages/vite-plugin-aem-css-url-passthrough/CHANGELOG.md`
 
 ---
 
@@ -189,12 +194,14 @@ git add \
   packages/vite-plugin-aem-clientlib/package.json \
   packages/vite-plugin-glob/package.json \
   packages/vite-plugin-aem-resources/package.json \
+  packages/vite-plugin-aem-css-url-passthrough/package.json \
   aemviteexample/ui.frontend/package.json \
   CHANGELOG.md \
   packages/aem-config/CHANGELOG.md \
   packages/vite-plugin-aem-clientlib/CHANGELOG.md \
   packages/vite-plugin-glob/CHANGELOG.md \
   packages/vite-plugin-aem-resources/CHANGELOG.md \
+  packages/vite-plugin-aem-css-url-passthrough/CHANGELOG.md \
   README.md \
   MIGRATION.md
 
@@ -246,8 +253,8 @@ After all steps complete, print:
 ```
 Released v<new-version>
   Bump:       <patch|minor>
-  Packages:   aem-config, vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources
-  Changelogs: root + 4 per-package
+  Packages:   aem-config, vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources, vite-plugin-aem-css-url-passthrough
+  Changelogs: root + 5 per-package
   Docs:       README.md, MIGRATION.md
   Commit:     <short-sha>
   Tag:        v<new-version>

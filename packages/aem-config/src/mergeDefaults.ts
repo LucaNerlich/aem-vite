@@ -25,6 +25,9 @@ export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
     clientLibRoot: config.clientLibRoot,
     clientlibs,
     ...(config.build !== undefined ? { build: config.build } : {}),
+    ...(config.cssUrlPassthrough !== undefined
+      ? { cssUrlPassthrough: config.cssUrlPassthrough }
+      : {}),
     ...(config.plugins !== undefined ? { plugins: config.plugins } : {}),
     ...(config.vite !== undefined ? { vite: config.vite } : {}),
   };

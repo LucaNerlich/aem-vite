@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-06-26
+
+### Added
+- New `@aemvite/vite-plugin-aem-css-url-passthrough` package: rewrites `url(...)` references in emitted clientlib CSS back to the canonical `../resources/<sub>/<file>` form. Mirrors webpack `css-loader: { url: false }` behaviour. Opt-in via `cssUrlPassthrough` on `defineAemConfig`.
+- `embed` descriptor support in `@aemvite/vite-plugin-aem-clientlib` — clientlibs can now declare embedded libraries via the `embed` field in `.content.xml`.
+
+### Changed
+- Babel and ESLint configs removed from the repo (no longer part of the toolchain).
+- All five packages unified at `0.5.0`.
+
 ## [0.4.0] - 2026-06-26
 
 ### Added

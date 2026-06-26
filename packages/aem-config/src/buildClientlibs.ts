@@ -6,6 +6,7 @@ import { loadAemConfig } from "./loadAemConfig.js";
 import { resolveBuildOptions } from "./resolveBuildOptions.js";
 import type {
   BuildClientlibsOptions,
+  CssUrlPassthroughOption,
   ResolvedAemClientlib,
   ResolvedAemConfig,
 } from "./types.js";
@@ -46,15 +47,17 @@ export async function buildClientlibs(
   const config = await loadAemConfig(configPath);
   const clientLibRoot = path.resolve(configDir, config.clientLibRoot);
 
-  const [vite, glob, resources, clientlibPkg] = await Promise.all([
+  const [vite, glob, resources, cssUrl, clientlibPkg] = await Promise.all([
     import("vite"),
     import("@aemvite/vite-plugin-glob"),
     import("@aemvite/vite-plugin-aem-resources"),
+    import("@aemvite/vite-plugin-aem-css-url-passthrough"),
     import("@aemvite/vite-plugin-aem-clientlib"),
   ]);
   const { build: viteBuild, mergeConfig } = vite;
   const { aemViteGlob } = glob;
   const { aemResources } = resources;
+  const { aemCssUrlPassthrough } = cssUrl;
   const { emitClientlib } = clientlibPkg;
 
   // Wipe the shared staging root once so subsequent per-clientlib builds
@@ -70,6 +73,7 @@ export async function buildClientlibs(
         buildInlineConfig(clientlib, config, configDir, stagingDir, mode, {
           aemViteGlob,
           aemResources,
+          aemCssUrlPassthrough,
           mergeConfig,
         }),
       );
@@ -89,6 +93,8 @@ export async function buildClientlibs(
 type ViteHelpers = {
   aemViteGlob: typeof import("@aemvite/vite-plugin-glob").aemViteGlob;
   aemResources: typeof import("@aemvite/vite-plugin-aem-resources").aemResources;
+  aemCssUrlPassthrough:
+    typeof import("@aemvite/vite-plugin-aem-css-url-passthrough").aemCssUrlPassthrough;
   mergeConfig: typeof import("vite").mergeConfig;
 };
 
@@ -98,7 +104,7 @@ function buildInlineConfig(
   configDir: string,
   stagingDir: string,
   mode: BuildClientlibsOptions["mode"],
-  { aemViteGlob, aemResources, mergeConfig }: ViteHelpers,
+  { aemViteGlob, aemResources, aemCssUrlPassthrough, mergeConfig }: ViteHelpers,
 ): InlineConfig {
   const entry = path.resolve(configDir, clientlib.entry);
   const resolved = resolveBuildOptions(mode, config.build, clientlib.build);
@@ -108,6 +114,14 @@ function buildInlineConfig(
   const resourceEntries = (clientlib.resources ?? []).map((from) => ({
     from: path.resolve(configDir, from),
   }));
+  // Per-clientlib value wins; explicit `false` opts out of an inherited global.
+  const cssUrlOption: CssUrlPassthroughOption | undefined =
+    clientlib.cssUrlPassthrough !== undefined
+      ? clientlib.cssUrlPassthrough
+      : config.cssUrlPassthrough;
+  const cssUrlPlugin = cssUrlOption
+    ? [aemCssUrlPassthrough(cssUrlOption === true ? {} : cssUrlOption)]
+    : [];
 
   let inlineConfig: InlineConfig = {
     configFile: false,
@@ -117,6 +131,7 @@ function buildInlineConfig(
     plugins: [
       aemViteGlob(),
       ...(resourceEntries.length ? [aemResources(resourceEntries)] : []),
+      ...cssUrlPlugin,
       ...(config.plugins ?? []),
       ...(clientlib.plugins ?? []),
     ],

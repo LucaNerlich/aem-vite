@@ -3,6 +3,7 @@
 [![npm: @aemvite/vite-plugin-aem-clientlib](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-clientlib?label=%40aemvite%2Fvite-plugin-aem-clientlib)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib)
 [![npm: @aemvite/vite-plugin-glob](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-glob?label=%40aemvite%2Fvite-plugin-glob)](https://www.npmjs.com/package/@aemvite/vite-plugin-glob)
 [![npm: @aemvite/vite-plugin-aem-resources](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-resources?label=%40aemvite%2Fvite-plugin-aem-resources)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources)
+[![npm: @aemvite/vite-plugin-aem-css-url-passthrough](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-css-url-passthrough?label=%40aemvite%2Fvite-plugin-aem-css-url-passthrough)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough)
 [![npm: @aemvite/aem-config](https://img.shields.io/npm/v/%40aemvite%2Faem-config?label=%40aemvite%2Faem-config)](https://www.npmjs.com/package/@aemvite/aem-config)
 
 Drop webpack from your AEM `ui.frontend` and build clientlibs with pure Vite.
@@ -31,6 +32,7 @@ under [`packages/`](./packages) in this repo.
 | [`@aemvite/vite-plugin-aem-clientlib`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib) ([src](./packages/vite-plugin-aem-clientlib)) | `aem-clientlib-generator` | Emits AEM clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) **byte-for-byte** against a captured golden reference, plus the `js/` / `css/` / `resources/` layout. |
 | [`@aemvite/vite-plugin-glob`](https://www.npmjs.com/package/@aemvite/vite-plugin-glob) ([src](./packages/vite-plugin-glob)) | `glob-import-loader` (styles) | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering. |
 | [`@aemvite/vite-plugin-aem-resources`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources) ([src](./packages/vite-plugin-aem-resources)) | `copy-webpack-plugin` | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize. |
+| [`@aemvite/vite-plugin-aem-css-url-passthrough`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough) ([src](./packages/vite-plugin-aem-css-url-passthrough)) | `css-loader: { url: false }` | Rewrites `url(...)` in emitted clientlib CSS back to the canonical `../resources/<sub>/<file>` form so SCSS-authored asset references resolve against the deployed AEM clientlib. Opt-in via `cssUrlPassthrough` on `defineAemConfig`. |
 
 ## How they fit together
 
@@ -196,7 +198,7 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.4.0", // pulls the three plugin packages + esbuild peer
+    "@aemvite/aem-config": "^0.5.0", // pulls the four plugin packages + esbuild peer
     "sass":    "^1.77.0",
     "vite":    "^8.1.0",
     "vitest":  "^4.1.9"
@@ -650,8 +652,8 @@ for every exposed API:
 
 ## Status & scope
 
-- **`@aemvite/aem-config`**: `0.4.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all three plugin packages now transitive deps.
-- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**: `0.4.0`.
+- **`@aemvite/aem-config`**: `0.5.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all four plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**: `0.5.0`.
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output

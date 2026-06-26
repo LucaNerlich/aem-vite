@@ -266,7 +266,7 @@ looking like this:
     "test": "vitest run"
   },
   "devDependencies": {
-    "@aemvite/aem-config": "^0.4.0",
+    "@aemvite/aem-config": "^0.5.0",
     "sass":                "^1.77.0",
     "vite":                "^8.1.0",
     "vitest":              "^4.1.9"

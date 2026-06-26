@@ -10,6 +10,7 @@ export type {
   BuildClientlibsOptions,
   BuildMode,
   BuildOptions,
+  CssUrlPassthroughOption,
   ProcessorList,
   ResolvedAemClientlib,
   ResolvedAemConfig,
