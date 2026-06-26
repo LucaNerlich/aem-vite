@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-06-26
+
+### Added
+- New `@aemvite/vite-plugin-aem-handlebars` package: precompiles `.template.hbs` files via `handlebars/runtime` and stubs out Storybook stories / non-template `.hbs` partials so they do not ship in the clientlib bundle.
+- Declarative `handlebars: true | { include?, ignore?, runtime? }` field on `defineAemConfig`, supported both globally and per-clientlib. Per-clientlib overrides win over the global value.
+- Lazy-loaded plugin wiring in `@aemvite/aem-config`: the handlebars plugin and the `handlebars` peer are only imported when at least one clientlib enables the feature, keeping `handlebars` an optional peer dependency.
+
+### Changed
+- CI publish workflow extended to publish `@aemvite/vite-plugin-aem-handlebars` as step 5/6 (publish order: clientlib → glob → resources → css-url-passthrough → handlebars → aem-config).
+- All six packages unified at `0.6.0`.
+
 ## [0.5.1] - 2026-06-26
 
 ### Fixed

@@ -4,6 +4,7 @@
 [![npm: @aemvite/vite-plugin-glob](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-glob?label=%40aemvite%2Fvite-plugin-glob)](https://www.npmjs.com/package/@aemvite/vite-plugin-glob)
 [![npm: @aemvite/vite-plugin-aem-resources](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-resources?label=%40aemvite%2Fvite-plugin-aem-resources)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources)
 [![npm: @aemvite/vite-plugin-aem-css-url-passthrough](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-css-url-passthrough?label=%40aemvite%2Fvite-plugin-aem-css-url-passthrough)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough)
+[![npm: @aemvite/vite-plugin-aem-handlebars](https://img.shields.io/npm/v/%40aemvite%2Fvite-plugin-aem-handlebars?label=%40aemvite%2Fvite-plugin-aem-handlebars)](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-handlebars)
 [![npm: @aemvite/aem-config](https://img.shields.io/npm/v/%40aemvite%2Faem-config?label=%40aemvite%2Faem-config)](https://www.npmjs.com/package/@aemvite/aem-config)
 
 Drop webpack from your AEM `ui.frontend` and build clientlibs with pure Vite.
@@ -33,6 +34,7 @@ under [`packages/`](./packages) in this repo.
 | [`@aemvite/vite-plugin-glob`](https://www.npmjs.com/package/@aemvite/vite-plugin-glob) ([src](./packages/vite-plugin-glob)) | `glob-import-loader` (styles) | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering. |
 | [`@aemvite/vite-plugin-aem-resources`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources) ([src](./packages/vite-plugin-aem-resources)) | `copy-webpack-plugin` | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize. |
 | [`@aemvite/vite-plugin-aem-css-url-passthrough`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough) ([src](./packages/vite-plugin-aem-css-url-passthrough)) | `css-loader: { url: false }` | Rewrites `url(...)` in emitted clientlib CSS back to the canonical `../resources/<sub>/<file>` form so SCSS-authored asset references resolve against the deployed AEM clientlib. Opt-in via `cssUrlPassthrough` on `defineAemConfig`. |
+| [`@aemvite/vite-plugin-aem-handlebars`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-handlebars) ([src](./packages/vite-plugin-aem-handlebars)) | `handlebars-loader` + Storybook stubs | Precompiles `.template.hbs` files via `handlebars/runtime` and stubs out Storybook stories / non-template `.hbs` partials so they do not ship in the clientlib bundle. Opt-in via `handlebars` on `defineAemConfig` (global or per-clientlib). |
 
 ## How they fit together
 
@@ -53,6 +55,10 @@ under [`packages/`](./packages) in this repo.
         │   • @aemvite/vite-plugin-glob      │  ← expand SCSS/CSS globs
         │   • @aemvite/vite-plugin-aem-      │  ← copy resources/
         │     resources                      │
+        │   • @aemvite/vite-plugin-aem-      │  ← rewrite url() to ../resources
+        │     css-url-passthrough  (opt-in)  │
+        │   • @aemvite/vite-plugin-aem-      │  ← precompile .template.hbs +
+        │     handlebars          (opt-in)   │    stub Storybook / partials
         └────────────────┬───────────────────┘
                          │ js/css assets per clientlib
                          ▼
@@ -72,7 +78,7 @@ Vite library build per entry, automatically wiring `@aemvite/vite-plugin-glob`
 (SCSS/CSS glob expansion) and `@aemvite/vite-plugin-aem-resources` (resources
 copy). `@aemvite/vite-plugin-aem-clientlib` then writes the descriptor files and
 lays out `js/`, `css/`, and `resources/` — byte-identical to the AEM archetype.
-The three plugin packages install transitively; consumers only need
+The plugin packages install transitively; consumers only need
 `@aemvite/aem-config`. If you also run `vite` as a standalone dev server (`npm
 start`), wire `aemViteGlob()` into your `vite.config.*` plugins array too.
 
@@ -198,7 +204,7 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.5.1", // pulls the four plugin packages + esbuild peer
+    "@aemvite/aem-config": "^0.6.0", // pulls the five plugin packages + esbuild peer
     "sass":    "^1.77.0",
     "vite":    "^8.1.0",
     "vitest":  "^4.1.9"
@@ -648,19 +654,26 @@ for every exposed API:
   `aemResources` options (single vs multiple entries, absolute paths) and
   the `.gitkeep`-only no-op behavior that keeps clientlib output
   byte-identical.
+- [`@aemvite/vite-plugin-aem-css-url-passthrough`](./packages/vite-plugin-aem-css-url-passthrough) —
+  `aemCssUrlPassthrough` options, when to opt in via `cssUrlPassthrough` on
+  `defineAemConfig`, and the canonical `../resources/<sub>/<file>` URL shape.
+- [`@aemvite/vite-plugin-aem-handlebars`](./packages/vite-plugin-aem-handlebars) —
+  `aemHandlebars` options (`include` / `ignore` / `runtime`), the
+  `handlebars: true | {…}` flag on `defineAemConfig` (global +
+  per-clientlib), and the Storybook / non-template `.hbs` stub behavior.
 
 
 ## Status & scope
 
-- **`@aemvite/aem-config`**: `0.5.1` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all four plugin packages now transitive deps.
-- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**: `0.5.1`.
+- **`@aemvite/aem-config`**: `0.6.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.6.0`.
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output
   vs. the captured golden.
-- Out of scope this round: build-time linting, Handlebars / Storybook
-  integrations, SCSS-to-CSS source migration, byte-level parity of minified
-  JS/CSS *content* (only descriptors and folder structure are byte-identical).
+- Out of scope this round: build-time linting, SCSS-to-CSS source migration,
+  byte-level parity of minified JS/CSS *content* (only descriptors and folder
+  structure are byte-identical).
 
 ## Publishing to npm
 
@@ -669,10 +682,11 @@ Releases are fully automated via CI. To cut a release:
 1. **Bump versions** in the relevant `packages/<name>/package.json` files.
 2. **Update `CHANGELOG.md`** at the repo root.
 3. **Push a `v*` tag** — the `.github/workflows/publish.yml` workflow triggers
-   and publishes in dependency order (clientlib → glob → resources → aem-config).
-   Each step is idempotent: if the exact `name@version` is already on the
-   registry, that step is skipped rather than hard-failing. The workflow uses
-   npm OIDC trusted publishing (no `NPM_TOKEN` or OTP required in CI).
+   and publishes in dependency order (clientlib → glob → resources →
+   css-url-passthrough → handlebars → aem-config). Each step is idempotent: if
+   the exact `name@version` is already on the registry, that step is skipped
+   rather than hard-failing. The workflow uses npm OIDC trusted publishing
+   (no `NPM_TOKEN` or OTP required in CI).
 
 ```sh
 git tag -a "v0.3.0" -m "v0.3.0"
@@ -681,20 +695,22 @@ git push --tags
 
 ### Publish order (and why it matters)
 
-`@aemvite/aem-config` depends on the three plugin packages, so they must be
+`@aemvite/aem-config` depends on the five plugin packages, so they must be
 live on the registry before `aem-config` publishes. The CI workflow handles
 this automatically:
 
 1. `@aemvite/vite-plugin-aem-clientlib`
 2. `@aemvite/vite-plugin-glob`
 3. `@aemvite/vite-plugin-aem-resources`
-4. `@aemvite/aem-config` — **last**
+4. `@aemvite/vite-plugin-aem-css-url-passthrough`
+5. `@aemvite/vite-plugin-aem-handlebars`
+6. `@aemvite/aem-config` — **last**
 
 ### Bumping a version
 
 1. Edit the version in `packages/<name>/package.json` (patch / minor / major).
 2. Update `CHANGELOG.md` at the repo root.
-3. If the bumped package is a dependency of `@aemvite/aem-config` (all three
+3. If the bumped package is a dependency of `@aemvite/aem-config` (all five
    plugin packages are), check whether the range in `aem-config/package.json`
    needs widening.
 4. Commit, then push a new `v*` tag — CI publishes automatically.

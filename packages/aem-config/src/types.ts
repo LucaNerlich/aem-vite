@@ -16,6 +16,28 @@ export type CssUrlPassthroughOption =
   | { resourceDirs?: readonly string[] };
 
 /**
+ * Toggle / configure the Handlebars precompile + Storybook-stub plugin
+ * (`@aemvite/vite-plugin-aem-handlebars`). When truthy, the plugin is
+ * auto-wired into each clientlib's build, precompiling `*.template.hbs`
+ * files into runtime modules and stubbing Storybook-only / non-template
+ * `*.hbs` partials.
+ *
+ * - `true` — wire with defaults.
+ * - `false` — explicitly disable (overrides a global `true`).
+ * - object — wire with the supplied options. Shape mirrors
+ *   `AemHandlebarsOptions` from the plugin package, kept as a structural
+ *   type here so the consumer config does not need a direct import.
+ */
+export type HandlebarsOption =
+  | boolean
+  | {
+      templateSuffix?: string;
+      precompileOptions?: Record<string, unknown>;
+      runtime?: string;
+      ignore?: false | readonly (RegExp | string)[];
+    };
+
+/**
  * Author-facing build options. Each field is optional and overlays on top of
  * the mode baseline (development/production) and the global `AemConfig.build`.
  *
@@ -69,6 +91,12 @@ export interface AemClientlib {
    */
   cssUrlPassthrough?: CssUrlPassthroughOption;
   /**
+   * Per-clientlib override for the Handlebars plugin. Takes precedence over
+   * the global `AemConfig.handlebars`. Set explicitly to `false` to opt out
+   * when the global is enabled.
+   */
+  handlebars?: HandlebarsOption;
+  /**
    * Extra Vite plugins applied to this clientlib's build, after the built-in
    * `aemViteGlob` / `aemResources` and after `AemConfig.plugins`. Lets advanced
    * adopters inject e.g. a framework plugin without writing a build script.
@@ -99,6 +127,17 @@ export interface AemConfig {
    */
   cssUrlPassthrough?: CssUrlPassthroughOption;
   /**
+   * Auto-wire `@aemvite/vite-plugin-aem-handlebars` into every clientlib
+   * build. Precompiles `*.template.hbs` files into runtime Handlebars
+   * functions and stubs Storybook-only / non-template `*.hbs` partials.
+   * Drop-in replacement for the webpack `handlebars-loader` + `IgnorePlugin`
+   * pair. Override per-clientlib via `AemClientlib.handlebars`.
+   *
+   * Consumers must install `handlebars` themselves (peer dep of the plugin
+   * package).
+   */
+  handlebars?: HandlebarsOption;
+  /**
    * Extra Vite plugins applied to every clientlib build, after the built-in
    * `aemViteGlob` / `aemResources` and before any per-clientlib `plugins`.
    */
@@ -122,6 +161,8 @@ export interface ResolvedAemConfig {
   build?: BuildOptions;
   /** Global CSS `url()` passthrough toggle (resolved per-clientlib at build time). */
   cssUrlPassthrough?: CssUrlPassthroughOption;
+  /** Global Handlebars toggle (resolved per-clientlib at build time). */
+  handlebars?: HandlebarsOption;
   /** Global extra Vite plugins (applied to every clientlib build). */
   plugins?: PluginOption[];
   /** Global deep Vite config override. */

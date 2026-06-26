@@ -28,6 +28,9 @@ export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
     ...(config.cssUrlPassthrough !== undefined
       ? { cssUrlPassthrough: config.cssUrlPassthrough }
       : {}),
+    ...(config.handlebars !== undefined
+      ? { handlebars: config.handlebars }
+      : {}),
     ...(config.plugins !== undefined ? { plugins: config.plugins } : {}),
     ...(config.vite !== undefined ? { vite: config.vite } : {}),
   };

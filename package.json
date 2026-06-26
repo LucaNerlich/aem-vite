@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @aemvite/vite-plugin-aem-clientlib && npm run build -w @aemvite/vite-plugin-glob && npm run build -w @aemvite/vite-plugin-aem-resources && npm run build -w @aemvite/vite-plugin-aem-css-url-passthrough && npm run build -w @aemvite/aem-config",
+    "build": "npm run build -w @aemvite/vite-plugin-aem-clientlib && npm run build -w @aemvite/vite-plugin-glob && npm run build -w @aemvite/vite-plugin-aem-resources && npm run build -w @aemvite/vite-plugin-aem-css-url-passthrough && npm run build -w @aemvite/vite-plugin-aem-handlebars && npm run build -w @aemvite/aem-config",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
   },

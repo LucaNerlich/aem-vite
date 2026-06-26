@@ -1,16 +1,18 @@
 {
-  "name": "@aemvite/aem-config",
+  "name": "@aemvite/vite-plugin-aem-handlebars",
   "version": "0.6.0",
-  "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
+  "description": "Vite plugin that precompiles `.template.hbs` files into Handlebars runtime functions and stubs Storybook/non-template `.hbs` partials, mirroring webpack handlebars-loader + IgnorePlugin for AEM clientlib builds.",
   "keywords": [
     "aem",
     "clientlib",
     "vite",
-    "config",
-    "edge-delivery",
-    "aemvite",
-    "build",
-    "orchestrator"
+    "vite-plugin",
+    "handlebars",
+    "handlebars-loader",
+    "precompile",
+    "templates",
+    "storybook",
+    "aemvite"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
@@ -19,22 +21,18 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
-    "directory": "packages/aem-config"
+    "directory": "packages/vite-plugin-aem-handlebars"
   },
   "license": "MIT",
   "author": "Luca Nerlich",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
-  },
-  "bin": {
-    "aem-build": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -51,19 +49,13 @@
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-    "@aemvite/vite-plugin-aem-clientlib": "^0.6.0",
-    "@aemvite/vite-plugin-aem-css-url-passthrough": "^0.6.0",
-    "@aemvite/vite-plugin-aem-handlebars": "^0.6.0",
-    "@aemvite/vite-plugin-aem-resources": "^0.6.0",
-    "@aemvite/vite-plugin-glob": "^0.6.0"
-  },
   "peerDependencies": {
-    "esbuild": "^0.28",
+    "handlebars": "^4.7",
     "vite": "^8"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
+    "handlebars": "^4.7.8",
     "typescript": "^5.9.3",
     "vite": "8.1.0",
     "vitest": "4.1.9"

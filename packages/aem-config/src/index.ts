@@ -11,6 +11,7 @@ export type {
   BuildMode,
   BuildOptions,
   CssUrlPassthroughOption,
+  HandlebarsOption,
   ProcessorList,
   ResolvedAemClientlib,
   ResolvedAemConfig,

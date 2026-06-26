@@ -5,6 +5,16 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-26
+
+### Added
+- `handlebars: true | { include?, ignore?, runtime? }` field on `defineAemConfig`, supported globally and per-clientlib. When enabled, `@aemvite/vite-plugin-aem-handlebars` is auto-wired into the clientlib's Vite build.
+- Lazy-loading wiring in `buildClientlibs`: the handlebars plugin (and the `handlebars` peer) are only imported when at least one clientlib opts in, keeping `handlebars` an optional peer dependency.
+
+### Changed
+- New transitive dependency on `@aemvite/vite-plugin-aem-handlebars`.
+- All plugin dependency ranges bumped to `^0.6.0`.
+
 ## [0.5.1] - 2026-06-26
 
 ### Fixed

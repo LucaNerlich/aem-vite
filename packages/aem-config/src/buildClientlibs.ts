@@ -7,6 +7,7 @@ import { resolveBuildOptions } from "./resolveBuildOptions.js";
 import type {
   BuildClientlibsOptions,
   CssUrlPassthroughOption,
+  HandlebarsOption,
   ResolvedAemClientlib,
   ResolvedAemConfig,
 } from "./types.js";
@@ -47,18 +48,29 @@ export async function buildClientlibs(
   const config = await loadAemConfig(configPath);
   const clientLibRoot = path.resolve(configDir, config.clientLibRoot);
 
-  const [vite, glob, resources, cssUrl, clientlibPkg] = await Promise.all([
-    import("vite"),
-    import("@aemvite/vite-plugin-glob"),
-    import("@aemvite/vite-plugin-aem-resources"),
-    import("@aemvite/vite-plugin-aem-css-url-passthrough"),
-    import("@aemvite/vite-plugin-aem-clientlib"),
-  ]);
+  // The handlebars plugin is only imported when at least one clientlib
+  // (or the global config) opts in. This keeps `handlebars` an optional
+  // peer dep: projects that don't use it never need to install it.
+  const handlebarsNeeded = config.clientlibs.some(
+    (c) => (c.handlebars ?? config.handlebars) !== undefined && (c.handlebars ?? config.handlebars) !== false,
+  );
+  const [vite, glob, resources, cssUrl, clientlibPkg, handlebarsPkg] =
+    await Promise.all([
+      import("vite"),
+      import("@aemvite/vite-plugin-glob"),
+      import("@aemvite/vite-plugin-aem-resources"),
+      import("@aemvite/vite-plugin-aem-css-url-passthrough"),
+      import("@aemvite/vite-plugin-aem-clientlib"),
+      handlebarsNeeded
+        ? import("@aemvite/vite-plugin-aem-handlebars")
+        : Promise.resolve(undefined),
+    ]);
   const { build: viteBuild, mergeConfig } = vite;
   const { aemViteGlob } = glob;
   const { aemResources } = resources;
   const { aemCssUrlPassthrough } = cssUrl;
   const { emitClientlib } = clientlibPkg;
+  const aemHandlebars = handlebarsPkg?.aemHandlebars;
 
   // Wipe the shared staging root once so subsequent per-clientlib builds
   // accumulate into it without stale files.
@@ -74,6 +86,7 @@ export async function buildClientlibs(
           aemViteGlob,
           aemResources,
           aemCssUrlPassthrough,
+          aemHandlebars,
           mergeConfig,
         }),
       );
@@ -95,6 +108,9 @@ type ViteHelpers = {
   aemResources: typeof import("@aemvite/vite-plugin-aem-resources").aemResources;
   aemCssUrlPassthrough:
     typeof import("@aemvite/vite-plugin-aem-css-url-passthrough").aemCssUrlPassthrough;
+  aemHandlebars:
+    | typeof import("@aemvite/vite-plugin-aem-handlebars").aemHandlebars
+    | undefined;
   mergeConfig: typeof import("vite").mergeConfig;
 };
 
@@ -104,7 +120,13 @@ function buildInlineConfig(
   configDir: string,
   stagingDir: string,
   mode: BuildClientlibsOptions["mode"],
-  { aemViteGlob, aemResources, aemCssUrlPassthrough, mergeConfig }: ViteHelpers,
+  {
+    aemViteGlob,
+    aemResources,
+    aemCssUrlPassthrough,
+    aemHandlebars,
+    mergeConfig,
+  }: ViteHelpers,
 ): InlineConfig {
   const entry = path.resolve(configDir, clientlib.entry);
   const resolved = resolveBuildOptions(mode, config.build, clientlib.build);
@@ -122,6 +144,16 @@ function buildInlineConfig(
   const cssUrlPlugin = cssUrlOption
     ? [aemCssUrlPassthrough(cssUrlOption === true ? {} : cssUrlOption)]
     : [];
+  // Per-clientlib handlebars value wins; explicit `false` opts out of an
+  // inherited global. The dynamic import in `buildClientlibs` only loads the
+  // plugin package when at least one clientlib opts in, so `aemHandlebars`
+  // may be `undefined` here; we still guard `handlebarsOption` against that.
+  const handlebarsOption: HandlebarsOption | undefined =
+    clientlib.handlebars !== undefined ? clientlib.handlebars : config.handlebars;
+  const handlebarsPlugin =
+    handlebarsOption && aemHandlebars
+      ? [aemHandlebars(handlebarsOption === true ? {} : handlebarsOption)]
+      : [];
 
   let inlineConfig: InlineConfig = {
     configFile: false,
@@ -132,6 +164,7 @@ function buildInlineConfig(
       aemViteGlob(),
       ...(resourceEntries.length ? [aemResources(resourceEntries)] : []),
       ...cssUrlPlugin,
+      ...handlebarsPlugin,
       ...(config.plugins ?? []),
       ...(clientlib.plugins ?? []),
     ],

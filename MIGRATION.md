@@ -52,7 +52,7 @@ What does **not** change:
   files. (The folder is still called `webpack/` in the reference even after
   migration; renaming is optional and orthogonal.)
 - You install `@aemvite/*` from the **public npm registry**. The monorepo in
-  this repo is only the source of truth for the four packages; an adopting
+  this repo is only the source of truth for the five packages; an adopting
   project never needs to clone it or use `file:` links.
 
 ---
@@ -235,9 +235,10 @@ not required.)
 ### 5.2. Install the `@aemvite` toolchain
 
 ```sh
-# Single entry point — pulls the three plugin packages
-# (vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources)
-# in transitively. `@aemvite/aem-config` also declares `esbuild` as a peer
+# Single entry point — pulls the plugin packages
+# (vite-plugin-aem-clientlib, vite-plugin-glob, vite-plugin-aem-resources,
+# vite-plugin-aem-css-url-passthrough, vite-plugin-aem-handlebars) in
+# transitively. `@aemvite/aem-config` also declares `esbuild` as a peer
 # dependency (range ^0.27.0 || ^0.28.0), so npm 7+ and pnpm 8+ auto-install
 # it. Yarn classic users must add it manually:
 #   npm install --save-dev esbuild@^0.28.0
@@ -266,7 +267,7 @@ looking like this:
     "test": "vitest run"
   },
   "devDependencies": {
-    "@aemvite/aem-config": "^0.5.1",
+    "@aemvite/aem-config": "^0.6.0",
     "sass":                "^1.77.0",
     "vite":                "^8.1.0",
     "vitest":              "^4.1.9"
@@ -280,7 +281,7 @@ looking like this:
 
 > **What about the reference repo's `package.json`?** The
 > [`aemvite/ui.frontend/package.json`](./aemvite/ui.frontend/package.json) in
-> this monorepo `file:`-links the four `@aemvite/*` packages and does not
+> this monorepo `file:`-links the five `@aemvite/*` packages and does not
 > declare `esbuild` itself — npm hoists it from the `@aemvite/aem-config` peer
 > dependency. It also does not ship `aemsync`.
 
@@ -449,7 +450,74 @@ See the
 [`@aemvite/vite-plugin-aem-resources` README](./packages/vite-plugin-aem-resources#notes--caveats)
 for the exact rules.
 
-### 5.7. Maven stays the same
+### 5.7. Handlebars (optional, only if your project uses `.hbs` templates)
+
+The OOTB AEM archetype does not ship Handlebars, so you can skip this
+section unless your `ui.frontend` has `.template.hbs` files (typically
+authored alongside JS components and `import`ed at runtime, often with a
+local `handlebars-loader` or a custom webpack rule).
+
+`@aemvite/vite-plugin-aem-handlebars` replaces that loader. It precompiles
+`.template.hbs` files into JS functions that import `handlebars/runtime`,
+and stubs out Storybook stories / non-template `.hbs` partials so they do
+not pollute the clientlib bundle.
+
+Install `handlebars` as a peer (the plugin does not bundle the compiler):
+
+```sh
+npm install --save-dev handlebars
+```
+
+Then opt in from `aem.config.mjs` — either globally for every clientlib, or
+per-clientlib:
+
+```js
+// aem.config.mjs (excerpt)
+export default defineAemConfig({
+  // Global: enable for every clientlib.
+  handlebars: true,
+
+  // OR fine-grained:
+  // handlebars: {
+  //   include: /\.template\.hbs$/,
+  //   ignore:  [/\.stories\.js$/, /[\\/]vendors[\\/]tabs\.js$/],
+  //   runtime: 'handlebars/runtime', // override only if your project wraps it
+  // },
+
+  clientlibs: [
+    {
+      name: 'site',
+      entry: 'src/main/webpack/site/main.ts',
+      // Per-clientlib override wins over the global value.
+      // handlebars: { ignore: [/[\\/]vendors[\\/]tabs\.js$/] },
+    },
+  ],
+});
+```
+
+Behavior:
+
+- Files matching `include` are transformed via `Handlebars.precompile()` and
+  emitted as `export default Handlebars.template(<precompiled>)`. The
+  generated module `import`s from `runtime` (default `"handlebars/runtime"`).
+- Files matching `ignore` (including, by default, `*.stories.js`,
+  `*.stories.ts`, `*.story.js`, and non-template `*.hbs` partials) are
+  redirected to a single virtual stub module that exports an empty object,
+  so they do not ship in the production clientlib bundle.
+- The plugin is **lazy-loaded** by `@aemvite/aem-config`: if no clientlib has
+  `handlebars` enabled, neither the plugin nor `handlebars` is imported, so
+  consumers without `.hbs` files never need to install `handlebars`.
+
+If you migrated from a project that maintained a local
+`vite-plugin-handlebars.mjs` (or a webpack `handlebars-loader` rule), delete
+it after switching to `handlebars: { … }` — the declarative flag covers both
+the precompile and the stubbing concerns.
+
+For the full API (`include` / `ignore` / `runtime` options, virtual-module
+ID details, and test fixtures) see the
+[`@aemvite/vite-plugin-aem-handlebars` README](./packages/vite-plugin-aem-handlebars).
+
+### 5.8. Maven stays the same
 
 Open `ui.frontend/pom.xml` and confirm that `frontend-maven-plugin` is still
 running `npm run prod` (and `npm run dev` under the `fedDev` profile). The
@@ -503,7 +571,7 @@ mvn -f ui.frontend/pom.xml -P fedDev generate-resources
 This should resolve `npm run dev` → `aem-build --mode dev …` → byte-identical
 clientlib descriptors written under `ui.apps/.../clientlibs/`.
 
-### 5.8. Delete the now-unused config files
+### 5.9. Delete the now-unused config files
 
 ```sh
 rm -f webpack.common.js webpack.dev.js webpack.prod.js \
@@ -518,7 +586,7 @@ If you previously had a separate `postcss.config.*` / `.postcssrc*`, delete
 that too. (The OOTB archetype keeps PostCSS config inline in
 `webpack.common.js`, so there's nothing extra to remove there.)
 
-### 5.9. Clean install + first build
+### 5.10. Clean install + first build
 
 ```sh
 rm -rf node_modules package-lock.json
@@ -595,8 +663,8 @@ for the rendering rules locked by the emitter.
   npm install --save-dev esbuild@^0.28.0
   ```
 
-- **`Error: Cannot find package 'vite'`** during `npm run prod`. Three of
-  the four `@aemvite/*` packages declare `vite ^7 || ^8` as a peer.
+- **`Error: Cannot find package 'vite'`** during `npm run prod`. Four of
+  the five `@aemvite/*` packages declare `vite ^7 || ^8` as a peer.
   Install it explicitly:
 
   ```sh
@@ -664,6 +732,13 @@ for every exposed API:
 - [`@aemvite/vite-plugin-aem-resources`](./packages/vite-plugin-aem-resources) —
   `aemResources` options (single vs multiple entries, absolute paths) and
   the `.gitkeep`-only no-op behavior.
+- [`@aemvite/vite-plugin-aem-css-url-passthrough`](./packages/vite-plugin-aem-css-url-passthrough) —
+  `aemCssUrlPassthrough` options, when to opt in via `cssUrlPassthrough` on
+  `defineAemConfig`, and the canonical `../resources/<sub>/<file>` URL shape.
+- [`@aemvite/vite-plugin-aem-handlebars`](./packages/vite-plugin-aem-handlebars) —
+  `aemHandlebars` options (`include` / `ignore` / `runtime`), the
+  `handlebars: true | {…}` flag on `defineAemConfig` (global +
+  per-clientlib), and the Storybook / non-template `.hbs` stub behavior.
 
 For the higher-level adoption walkthrough, see
 [README → "Adopt @aemvite in your AEM project"](./README.md#adopt-aemvite-in-your-aem-project).
