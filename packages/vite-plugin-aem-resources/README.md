@@ -12,8 +12,8 @@ Part of the [`@aemvite/*`](https://github.com/LucaNerlich/aem-vite) toolchain.
 npm i -D @aemvite/vite-plugin-aem-resources
 ```
 
-- **Peer dependency:** `vite` `^7 || ^8`
-- **Engines:** Node `^20.19.0 || >=22.12.0`
+- **Peer dependency:** `vite` `^8`
+- **Engines:** Node `^20.19.0 || ^22.18.0 || >=24.11.0`
 - No runtime dependencies — uses only Node's built-in `node:fs` and
   `node:path`.
 

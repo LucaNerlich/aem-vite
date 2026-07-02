@@ -1,8 +1,8 @@
 import path from 'node:path';
 import os from 'node:os';
 import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { describe, it, beforeAll, expect } from 'vitest';
-import { build as viteBuild } from 'vite';
+import { describe, it, beforeAll, expect } from 'vite-plus/test';
+import { build as viteBuild } from 'vite-plus';
 import { resolveBuildOptions } from '@aemvite/aem-config';
 
 /**

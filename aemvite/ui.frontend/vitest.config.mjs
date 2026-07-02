@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite-plus';
 
 // Override the project's vite.config.mjs `root` (which points at the
 // static dev-server root) so vitest discovers tests under ui.frontend.

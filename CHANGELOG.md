@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-07-02
+
+### Changed
+- **Toolchain migrated to [Vite+](https://viteplus.dev)** (VoidZero's unified Vite/Vitest/Oxlint/Oxfmt/tsdown-Rolldown toolchain, driven by the `vp` CLI). All six packages now build with `vp pack` (tsdown/Rolldown) instead of `tsc`, and test with vite-plus's bundled Vitest (`vite-plus/test`) instead of a standalone `vitest` devDependency.
+- Package build output extension changed from `.js`/`.d.ts` to `.mjs`/`.d.mts` (tsdown's default for ESM output); `main`/`types`/`exports`/`bin` fields updated accordingly in every package. Only the packages' own dist shape changed — the byte-identical clientlib descriptor contract for consumers is unaffected (verified against golden fixtures and a live `aem-build --mode prod` run).
+- Node engines tightened to `^20.19.0 || ^22.18.0 || >=24.11.0` (required by `vite-plus`; the previous Vite-8-only range included the now-unsupported 22.12–22.17 band).
+- CI (`publish.yml`) bumped to Node 24 and now builds before linting (aem-config's type-aware lint needs the other five packages' built `.d.mts` to resolve).
+- `aemviteexample/ui.frontend`'s `tsconfig.json` had a stale, self-referential `baseUrl` removed, and gained a standard `vite-env.d.ts` ambient-types shim (`import.meta.glob`/`.scss` side-effect imports need it to type-check cleanly) — **no `vite-plus` devDependency added**, since that would either bloat every real adopter's install (if pushed through `@aemvite/aem-config` as a real dependency) or create a phantom-dependency footgun (if left undeclared and relied on hoisting). This module stays a genuinely minimal consumer.
+
+### Added
+- **Real linting, repo-wide, for the first time.** Every package now runs Oxlint via `vp lint`, configured in a new root `vite.config.ts`. `npm run lint` at the root is no longer a no-op. (`aemviteexample/ui.frontend` intentionally excluded — see above.)
+- `aemvite/ui.frontend`'s standalone dev-proxy server now runs via `vp dev` (`npm start`) instead of the raw `vite` CLI.
+- `.nvmrc` pinning Node 24.
+
+### Fixed
+- `aemvite/ui.frontend/test/descriptors-parity.test.mjs` called a long-removed `aem-build.mjs` wrapper (per the `[0.2.0]` entry below) instead of the real `aem-build` CLI bin — the byte-identical parity test had been silently broken since that removal. Now invokes `node_modules/.bin/aem-build` directly.
+
 ## [0.6.0] - 2026-06-26
 
 ### Added

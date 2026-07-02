@@ -9,12 +9,12 @@ This module is the **reference consumer** of the
 [`@aemvite/*`](https://github.com/LucaNerlich/aem-vite) toolchain. It uses
 `file:` links to the local monorepo packages so the toolchain can be developed
 and tested end-to-end without publishing to npm first. A real AEM project would
-install only `@aemvite/aem-config` from the registry and get the three plugin
+install only `@aemvite/aem-config` from the registry and get the five plugin
 packages transitively.
 
 ## Prerequisites
 
-- **Node.js** `^20.19.0 || >=22.12.0` (required by Vite 8 + rolldown)
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by [vite-plus](https://viteplus.dev))
 - **npm** (or pnpm / yarn)
 
 When building via Maven, `frontend-maven-plugin` downloads and caches the
@@ -32,7 +32,8 @@ npm ci
 |---|---|
 | `npm run dev` | Build all clientlibs in development mode — no minification, inline sourcemaps. |
 | `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps. Output is byte-identical to the golden reference. |
-| `npm test` | Run unit tests with Vitest. |
+| `npm start` | Standalone dev-proxy server via `vp dev` (Vite+), proxying `/content` and `/etc.clientlibs` to `localhost:4502`. Optional — not part of the clientlib build. |
+| `npm test` | Run unit tests via vite-plus's bundled Vitest. |
 
 Both `dev` and `prod` call the `aem-build` CLI that ships with
 `@aemvite/aem-config` (installed via `node_modules/.bin/aem-build`). No

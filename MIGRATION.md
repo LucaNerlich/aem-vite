@@ -59,7 +59,7 @@ What does **not** change:
 
 ## 2. Prerequisites
 
-- **Node.js** `^20.19.0 || >=22.12.0` — the engines range for Vite 8. Older
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` — the engines range required by vite-plus. Older
   Node fails `npm install` of `vite@^8` and also breaks
   `frontend-maven-plugin` invocations (`SyntaxError: ... does not provide an
   export named 'styleText'`).
@@ -267,7 +267,7 @@ looking like this:
     "test": "vitest run"
   },
   "devDependencies": {
-    "@aemvite/aem-config": "^0.6.0",
+    "@aemvite/aem-config": "^0.7.0",
     "sass":                "^1.77.0",
     "vite":                "^8.1.0",
     "vitest":              "^4.1.9"
@@ -374,8 +374,8 @@ New:
   "scripts": {
     "dev":   "aem-build --mode dev  --config aem.config.mjs",
     "prod":  "aem-build --mode prod --config aem.config.mjs",
-    "start": "vite",
-    "test":  "vitest run"
+    "start": "vp dev",
+    "test":  "vp test run"
   }
 }
 ```
@@ -541,7 +541,7 @@ archetype's wiring is already correct:
 The `<execution>` wiring stays untouched. **But the bundled Node version
 almost certainly needs a bump** — the AEM Maven archetype historically pins
 `v16.x` (e.g. `v16.17.0` with `npm@8.15.0`), and Vite 8 refuses to install
-on anything older than `^20.19.0 || >=22.12.0`. Find the
+on anything older than `^20.19.0 || ^22.18.0 || >=24.11.0`. Find the
 `frontend-maven-plugin` `<configuration>` block (usually in the **parent
 `pom.xml`** under `<pluginManagement>`, not in `ui.frontend/pom.xml`) and
 update it:
@@ -553,12 +553,12 @@ update it:
    <configuration>
 -    <nodeVersion>v16.17.0</nodeVersion>
 -    <npmVersion>8.15.0</npmVersion>
-+    <nodeVersion>v22.12.0</nodeVersion>
++    <nodeVersion>v22.18.0</nodeVersion>
 +    <npmVersion>10.9.0</npmVersion>
    </configuration>
 ```
 
-The reference repo pins `v22.12.0` / `10.9.0`. Once changed, delete the
+The reference repo pins `v22.18.0` / `10.9.0`. Once changed, delete the
 locally cached `ui.frontend/node/` directory (if present) so the new Node
 gets downloaded on the next Maven build.
 
@@ -663,8 +663,8 @@ for the rendering rules locked by the emitter.
   npm install --save-dev esbuild@^0.28.0
   ```
 
-- **`Error: Cannot find package 'vite'`** during `npm run prod`. Four of
-  the five `@aemvite/*` packages declare `vite ^7 || ^8` as a peer.
+- **`Error: Cannot find package 'vite'`** during `npm run prod`. Five of
+  the six `@aemvite/*` packages declare `vite ^8` as a peer.
   Install it explicitly:
 
   ```sh
@@ -676,7 +676,7 @@ for the rendering rules locked by the emitter.
 
 - **`SyntaxError: ... does not provide an export named 'styleText'`** or
   any Node engine warning (`EBADENGINE`). Your Node is too old for Vite 8.
-  Bump to `^20.19.0 || >=22.12.0`. In a Maven build, set the
+  Bump to `^20.19.0 || ^22.18.0 || >=24.11.0`. In a Maven build, set the
   `<nodeVersion>` in `frontend-maven-plugin` (or the parent pom that
   configures it) accordingly — Cloud Manager picks the Node version from
   there.
@@ -708,7 +708,7 @@ for the rendering rules locked by the emitter.
   errors surface as Sass errors (not silent drops).
 
 - **Maven works locally, fails in CI.** Confirm CI Node satisfies
-  `^20.19.0 || >=22.12.0` and that `frontend-maven-plugin`'s pinned Node
+  `^20.19.0 || ^22.18.0 || >=24.11.0` and that `frontend-maven-plugin`'s pinned Node
   version does too.
 
 ---

@@ -17,7 +17,7 @@ plugin) when you need to wire clientlib output into a different build flow.
 npm i -D @aemvite/vite-plugin-aem-clientlib
 ```
 
-- **Engines:** Node `^20.19.0 || >=22.12.0`.
+- **Engines:** Node `^20.19.0 || ^22.18.0 || >=24.11.0`.
 - **No declared peer dependency on Vite.** This package intentionally ships no
   `peerDependencies`. The renderer + `emitClientlib(s)` functions are pure
   Node and never `import` from `vite`. The optional `aemClientlibPlugin` is

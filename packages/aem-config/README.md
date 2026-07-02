@@ -24,8 +24,8 @@ npm i -D @aemvite/aem-config vite esbuild
 npm i -D sass
 ```
 
-- **Peer dependency:** `vite` `^7 || ^8` (with Vite 8 also requires `esbuild` `^0.27.0 || ^0.28.0` — Vite declares it as an optional peer, so consumers must install it explicitly)
-- **Engines:** Node `^20.19.0 || >=22.12.0`
+- **Peer dependency:** `vite` `^8` (with Vite 8 also requires `esbuild` `^0.27.0 || ^0.28.0` — Vite declares it as an optional peer, so consumers must install it explicitly)
+- **Engines:** Node `^20.19.0 || ^22.18.0 || >=24.11.0`
 - Depends on all three plugin packages — `@aemvite/vite-plugin-aem-clientlib`, `@aemvite/vite-plugin-glob`, `@aemvite/vite-plugin-aem-resources` — all installed automatically.
 
 ## What it does

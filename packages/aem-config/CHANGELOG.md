@@ -5,6 +5,18 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-02
+
+### Changed
+- Build migrated from `tsc` to `vp pack` ([Vite+](https://viteplus.dev)'s tsdown/Rolldown-based library bundler); `main`/`types`/`exports`/`bin` now point at `dist/index.mjs`/`dist/index.d.mts`/`dist/cli.mjs` instead of the `.js`/`.d.ts` equivalents. `bin.aem-build` still resolves correctly and the CLI shebang/executable bit survive bundling.
+- Tests migrated from a standalone `vitest` devDependency to vite-plus's bundled Vitest (`vite-plus/test`).
+- Cross-dependency ranges on the five plugin packages bumped to `^0.7.0`.
+- `engines.node` tightened to `^20.19.0 || ^22.18.0 || >=24.11.0` (required by `vite-plus`).
+- **Unchanged by design:** `buildClientlibs.ts` and `loadAemConfig.ts` still import the real `vite` package directly (`build`, `mergeConfig`, `loadConfigFromFile`) — `vite-plus` doesn't re-export Vite's programmatic Node API, so this package's core build engine is untouched by the migration. Byte-identical clientlib descriptor output verified unchanged end-to-end.
+
+### Added
+- `lint` script (`vp lint`, Oxlint) — this package had no linting before.
+
 ## [0.6.0] - 2026-06-26
 
 ### Added

@@ -14,7 +14,7 @@ npm i -D @aemvite/vite-plugin-aem-handlebars handlebars
 ```
 
 - **Peer dependencies:** `vite` `^8`, `handlebars` `^4.7`
-- **Engines:** Node `^20.19.0 || >=22.12.0`
+- **Engines:** Node `^20.19.0 || ^22.18.0 || >=24.11.0`
 - Consumers must install `handlebars` themselves so they control the
   templating runtime version.
 

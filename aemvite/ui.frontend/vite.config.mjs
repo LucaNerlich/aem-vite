@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite-plus';
 import { aemViteGlob } from '@aemvite/vite-plugin-glob';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

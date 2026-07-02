@@ -139,8 +139,8 @@ examples.
 
 ## Requirements
 
-- **Node.js:** `^20.19.0 || >=22.12.0` (matches Vite 8 engines)
-- **Vite:** `^7 || ^8` (peer dependency on the plugin packages)
+- **Node.js:** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by vite-plus)
+- **Vite:** `^8` (peer dependency on the plugin packages)
 - **Sass:** required only when consuming `.scss`/`.sass` sources (`sass` /
   `sass-embedded`); not declared as a peer because plain CSS works without it.
 
@@ -159,7 +159,7 @@ build that produces byte-identical clientlib descriptors.
 Before you start, confirm your project matches the assumptions baked into the
 toolchain:
 
-- **Node.js** `^20.19.0 || >=22.12.0` (matches Vite 8's `engines`). Older Node
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by vite-plus). Older Node
   releases will fail at `npm install` of `vite@^8`.
 - **npm** (Yarn / pnpm work too, but the reference uses npm because that is
   what `frontend-maven-plugin` invokes by default).
@@ -204,7 +204,7 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.6.0", // pulls the five plugin packages + esbuild peer
+    "@aemvite/aem-config": "^0.7.0", // pulls the five plugin packages + esbuild peer
     "sass":    "^1.77.0",
     "vite":    "^8.1.0",
     "vitest":  "^4.1.9"
@@ -417,10 +417,10 @@ In `ui.frontend/package.json`:
   "scripts": {
     "dev":   "aem-build --mode dev --config aem.config.mjs",
     "prod":  "aem-build --mode prod --config aem.config.mjs",
-    "start": "vite",                         // Vite dev server (optional)
+    "start": "vp dev",                       // Vite+ dev server (optional)
     "sync":  "aemsync -d -p ../ui.apps/src/main/content",
     "watch": "aemsync -w ../ui.apps/src/main/content",
-    "test":  "vitest run"
+    "test":  "vp test run"
   }
 }
 ```
@@ -429,7 +429,7 @@ In `ui.frontend/package.json`:
 `generate-resources` (and `npm run dev` under the `fedDev` profile in the
 reference). Because the npm script names did not change, you do **not** need
 to edit `pom.xml` — but its `<nodeVersion>` must satisfy Vite 8's engines
-(`^20.19.0 || >=22.12.0`); the reference pins `v22.12.0`. An older Node fails
+(`^20.19.0 || ^22.18.0 || >=24.11.0`); the reference pins `v22.18.0`. An older Node fails
 with `SyntaxError: ... does not provide an export named 'styleText'`. Confirm
 with:
 
@@ -613,8 +613,8 @@ fixture). To verify in your own project before deleting the old build:
   comparator to override. Non-glob `@import 'variables';` is preserved
   verbatim, so authoring errors there surface as Sass errors, not silent
   drops.
-- **`npm install` complains about an unmet peer for `vite`.** Three of the
-  four `@aemvite/*` packages declare `vite ^7 || ^8` as a peer dependency
+- **`npm install` complains about an unmet peer for `vite`.** Five of the
+  six `@aemvite/*` packages declare `vite ^8` as a peer dependency
   (`@aemvite/vite-plugin-aem-clientlib` is the exception — see its
   [README](./packages/vite-plugin-aem-clientlib#install)). Install
   `vite@^8` explicitly as a devDependency in `ui.frontend/`.
@@ -630,7 +630,7 @@ fixture). To verify in your own project before deleting the old build:
   of `@aemvite/aem-config`, so npm 7+ should auto-install it, but
   `npm install --save-dev vite@^8` makes it explicit).
 - **Maven works locally, fails in CI.** Confirm CI Node satisfies
-  `^20.19.0 || >=22.12.0` and that `frontend-maven-plugin` is pinned to a
+  `^20.19.0 || ^22.18.0 || >=24.11.0` and that `frontend-maven-plugin` is pinned to a
   Node version that does too. Cloud Manager picks the Node version from
   the plugin configuration; bump it if you see `EBADENGINE` warnings.
 
@@ -665,15 +665,17 @@ for every exposed API:
 
 ## Status & scope
 
-- **`@aemvite/aem-config`**: `0.6.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
-- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.6.0`.
+- **`@aemvite/aem-config`**: `0.7.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.7.0`.
+- Toolchain migrated to [Vite+](https://viteplus.dev): all six packages build with `vp pack` (tsdown/Rolldown) and test with vite-plus's bundled Vitest; `vite` itself stays a direct dependency where the packages need its programmatic Node API or types (vite-plus doesn't re-export those).
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output
   vs. the captured golden.
-- Out of scope this round: build-time linting, SCSS-to-CSS source migration,
-  byte-level parity of minified JS/CSS *content* (only descriptors and folder
-  structure are byte-identical).
+- Build-time linting is now in place (Oxlint via `vp lint`, conservative default ruleset).
+- Out of scope this round: SCSS-to-CSS source migration, byte-level parity of
+  minified JS/CSS *content* (only descriptors and folder structure are
+  byte-identical).
 
 ## Publishing to npm
 

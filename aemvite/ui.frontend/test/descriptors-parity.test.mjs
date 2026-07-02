@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { describe, it, beforeAll, expect } from 'vitest';
+import { describe, it, beforeAll, expect } from 'vite-plus/test';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,8 @@ const DESCRIPTORS = [
 
 describe('ui.frontend prod descriptors match golden (byte-identical)', () => {
   beforeAll(async () => {
-    await execFileAsync(process.execPath, ['aem-build.mjs', 'prod'], {
+    const aemBuild = path.join(uiFrontend, 'node_modules', '.bin', 'aem-build');
+    await execFileAsync(aemBuild, ['--mode', 'prod', '--config', 'aem.config.mjs'], {
       cwd: uiFrontend,
     });
   }, 120_000);

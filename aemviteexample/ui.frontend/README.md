@@ -13,7 +13,7 @@ invalidation, Cloud Manager packaging, and downstream caches require no changes.
 
 ## Prerequisites
 
-- **Node.js** `^20.19.0 || >=22.12.0` (required by Vite 8)
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (matches `@aemvite/aem-config`'s `engines`)
 - **npm** 7+ (or pnpm 8+ — both auto-install peer dependencies)
 
 When building via Maven, `frontend-maven-plugin` downloads and caches the right Node version
@@ -33,7 +33,10 @@ npm ci
 | `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps.             |
 
 Both call the `aem-build` CLI shipped with `@aemvite/aem-config`. There is no custom build
-script — all configuration lives in `aem.config.mjs`.
+script — all configuration lives in `aem.config.mjs`. This module deliberately installs only
+`@aemvite/aem-config` (no `vite`/`vitest`/`vite-plus` of its own) as the minimal-consumer
+reference point — see [`aemvite/ui.frontend`](../../aemvite/ui.frontend) for the fuller
+reference setup with its own dev server, tests, and linting.
 
 ## Configuration
 

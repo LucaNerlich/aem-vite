@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/aem-config",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
   "keywords": [
     "aem",
@@ -24,17 +24,17 @@
   "license": "MIT",
   "author": "Luca Nerlich",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
   "bin": {
-    "aem-build": "dist/cli.js"
+    "aem-build": "dist/cli.mjs"
   },
   "files": [
     "dist",
@@ -43,20 +43,21 @@
     "LICENSE"
   ],
   "engines": {
-    "node": "^22"
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "build": "vp pack src/index.ts src/cli.ts --dts",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "lint": "vp lint",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@aemvite/vite-plugin-aem-clientlib": "^0.6.0",
-    "@aemvite/vite-plugin-aem-css-url-passthrough": "^0.6.0",
-    "@aemvite/vite-plugin-aem-handlebars": "^0.6.0",
-    "@aemvite/vite-plugin-aem-resources": "^0.6.0",
-    "@aemvite/vite-plugin-glob": "^0.6.0"
+    "@aemvite/vite-plugin-aem-clientlib": "^0.7.0",
+    "@aemvite/vite-plugin-aem-css-url-passthrough": "^0.7.0",
+    "@aemvite/vite-plugin-aem-handlebars": "^0.7.0",
+    "@aemvite/vite-plugin-aem-resources": "^0.7.0",
+    "@aemvite/vite-plugin-glob": "^0.7.0"
   },
   "peerDependencies": {
     "esbuild": "^0.28",
@@ -65,8 +66,8 @@
   "devDependencies": {
     "@types/node": "^22.20.0",
     "typescript": "^5.9.3",
-    "vite": "8.1.0",
-    "vitest": "4.1.9"
+    "vite": "^8.1.0",
+    "vite-plus": "^0.2.1"
   },
   "publishConfig": {
     "access": "public"

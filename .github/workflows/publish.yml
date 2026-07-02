@@ -1,4 +1,4 @@
-# Publishes the five @aemvite/* packages to the public npm registry on every
+# Publishes the six @aemvite/* packages to the public npm registry on every
 # `v*` tag push, using npm's OIDC "trusted publishing" flow (no NPM_TOKEN, no OTP).
 #
 # REQUIRED ONE-TIME SETUP on npmjs.com (per package):
@@ -7,7 +7,7 @@
 #     Repository:           aem-vite
 #     Workflow filename:    publish.yml
 #     Environment:          (leave empty — no environment is used here)
-#   Without this configured for each of the 5 packages, OIDC publishes are rejected.
+#   Without this configured for each of the 6 packages, OIDC publishes are rejected.
 name: publish
 
 on:
@@ -33,15 +33,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           always-auth: false
 
-      # Node 22 ships an npm older than the 11.5.1+ required for OIDC trusted
-      # publishing. Upgrade before any publish step runs.
+      # Node 24's bundled npm still predates the 11.5.1+ required for OIDC
+      # trusted publishing. Upgrade before any publish step runs.
       - name: Upgrade npm (required for OIDC trusted publishing)
         run: |
           npm install -g npm@latest
@@ -53,11 +53,17 @@ jobs:
       - name: Build all workspaces (in dependency order)
         run: npm run build
 
+      # Runs after build: aem-config's type-aware lint resolves the other
+      # five packages' types from their built `dist/`, which doesn't exist yet
+      # pre-build.
+      - name: Lint all workspaces (gate publish)
+        run: npm run lint --workspaces --if-present
+
       - name: Test all workspaces (gate publish on green tests)
         run: npm test --workspaces --if-present
 
       # Publish in MANDATORY dependency order. `aem-config` is LAST because it
-      # depends on the three plugin packages being resolvable on the registry.
+      # depends on the five plugin packages being resolvable on the registry.
       # Each step is idempotent: if the exact name@version is already published
       # (e.g. re-running a tag), it skips instead of hard-failing.
       # NOTE: no NODE_AUTH_TOKEN / no .npmrc token — OIDC trusted publishing

@@ -15,8 +15,8 @@ npm i -D @aemvite/vite-plugin-glob
 npm i -D sass
 ```
 
-- **Peer dependency:** `vite` `^7 || ^8`
-- **Engines:** Node `^20.19.0 || >=22.12.0`
+- **Peer dependency:** `vite` `^8`
+- **Engines:** Node `^20.19.0 || ^22.18.0 || >=24.11.0`
 - Runtime dependency: [`tinyglobby`](https://github.com/SuperchupuDev/tinyglobby) for fast, dependency-light glob matching.
 
 ## What it does
