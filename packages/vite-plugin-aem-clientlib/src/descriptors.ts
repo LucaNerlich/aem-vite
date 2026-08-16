@@ -12,9 +12,19 @@ const XML_DECL = '<?xml version="1.0" encoding="UTF-8"?>';
 const NS_CQ = 'http://www.day.com/jcr/cq/1.0';
 const NS_JCR = 'http://www.jcp.org/jcr/1.0';
 
+/** Escape a string for safe interpolation into an XML attribute value. */
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 /** Encode a string[] as the AEM multi-value attribute `[a,b,c]`. */
 function encodeArray(values: readonly string[]): string {
-  return `[${values.join(',')}]`;
+  return `[${values.map(escapeXml).join(',')}]`;
 }
 
 /**
