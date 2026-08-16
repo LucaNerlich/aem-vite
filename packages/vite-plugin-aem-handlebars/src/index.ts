@@ -17,7 +17,9 @@ export interface AemHandlebarsOptions {
    */
   templateSuffix?: string;
   /**
-   * Options forwarded to `Handlebars.precompile`. Default: `{ strict: false }`.
+   * Options forwarded to `Handlebars.precompile`. Default: `{ strict: true }`
+   * (missing property paths throw at render time instead of silently
+   * resolving through the prototype chain).
    */
   precompileOptions?: HandlebarsPrecompileOptions;
   /**
@@ -39,7 +41,7 @@ export interface AemHandlebarsOptions {
 }
 
 const STUB_ID = '\0aemvite-handlebars-stub';
-const DEFAULT_PRECOMPILE_OPTIONS: HandlebarsPrecompileOptions = { strict: false };
+const DEFAULT_PRECOMPILE_OPTIONS: HandlebarsPrecompileOptions = { strict: true };
 const DEFAULT_RUNTIME = 'handlebars/runtime';
 const DEFAULT_TEMPLATE_SUFFIX = '.template.hbs';
 

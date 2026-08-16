@@ -57,7 +57,7 @@ import { defineAemConfig } from "@aemvite/aem-config";
 
 export default defineAemConfig({
   clientLibRoot: "../ui.apps/.../clientlibs",
-  handlebars: true, // or: { precompileOptions: { strict: true } }
+  handlebars: true, // or: { precompileOptions: { strict: false } } to opt out
   clientlibs: [
     /* ... */
   ],
@@ -82,7 +82,7 @@ global is enabled.
 interface AemHandlebarsOptions {
   /** Default: ".template.hbs". */
   templateSuffix?: string;
-  /** Forwarded verbatim to `Handlebars.precompile`. Default: { strict: false }. */
+  /** Forwarded verbatim to `Handlebars.precompile`. Default: { strict: true }. */
   precompileOptions?: Record<string, unknown>;
   /** Module specifier for the emitted import. Default: "handlebars/runtime". */
   runtime?: string;
