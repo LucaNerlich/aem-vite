@@ -133,3 +133,59 @@ describe('aemCssUrlPassthrough', () => {
     ).resolves.toBeUndefined();
   });
 });
+
+describe('aemCssUrlPassthrough — nested output trees', () => {
+  it('rewrites url()s in CSS files under subdirectories (e.g. dist/assets/)', async () => {
+    const dir = path.join(tmpRoot, 'dist');
+    await writeCss(
+      path.join(dir, 'assets'),
+      'site.css',
+      '.a{background:url(../../components/header/resources/images/icon.svg)}',
+    );
+
+    await runPlugin(aemCssUrlPassthrough(), dir);
+
+    const out = await fs.readFile(path.join(dir, 'assets', 'site.css'), 'utf8');
+    expect(out).toContain('url(../resources/images/icon.svg)');
+  });
+
+  it('rewrites top-level CSS files too', async () => {
+    const dir = path.join(tmpRoot, 'dist');
+    await writeCss(
+      dir,
+      'site.css',
+      '.a{background:url(../../components/header/resources/images/icon.svg)}',
+    );
+
+    await runPlugin(aemCssUrlPassthrough(), dir);
+
+    const out = await fs.readFile(path.join(dir, 'site.css'), 'utf8');
+    expect(out).toContain('url(../resources/images/icon.svg)');
+  });
+
+  it('honors a custom resourcePrefix', async () => {
+    const dir = path.join(tmpRoot, 'dist');
+    await writeCss(
+      dir,
+      'site.css',
+      '.a{background:url(../../components/header/resources/images/icon.svg)}',
+    );
+
+    await runPlugin(aemCssUrlPassthrough({ resourcePrefix: '' }), dir);
+
+    const out = await fs.readFile(path.join(dir, 'site.css'), 'utf8');
+    expect(out).toContain('url(resources/images/icon.svg)');
+  });
+
+  it('does not touch .css files in unrelated trees outside the output dir', async () => {
+    const dir = path.join(tmpRoot, 'dist');
+    const outside = path.join(tmpRoot, 'outside');
+    await writeCss(dir, 'site.css', '.a{background:url(../x/resources/images/i.svg)}');
+    await writeCss(outside, 'other.css', '.a{background:url(../x/resources/images/i.svg)}');
+
+    await runPlugin(aemCssUrlPassthrough(), dir);
+
+    const kept = await fs.readFile(path.join(outside, 'other.css'), 'utf8');
+    expect(kept).toBe('.a{background:url(../x/resources/images/i.svg)}');
+  });
+});

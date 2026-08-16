@@ -10,9 +10,18 @@ export interface AemCssUrlPassthroughOptions {
    * the most common AEM clientlib buckets.
    */
   resourceDirs?: readonly string[];
+  /**
+   * Path prefix written in front of the rewritten `resources/<sub>/<file>`
+   * tail. Defaults to `"../"` — the canonical AEM clientlib form, where CSS
+   * is served from `<clientlib>/css/` and static assets from
+   * `<clientlib>/resources/`. For layouts where CSS is served directly from
+   * the build output directory (siblings of `resources/`), use `""`.
+   */
+  resourcePrefix?: string;
 }
 
 const DEFAULT_RESOURCE_DIRS = ['images', 'fonts'] as const;
+const DEFAULT_RESOURCE_PREFIX = '../';
 // CSS `url()` regex broken across substitutions for readability.
 //   group 1: optional opening quote (`'`, `"`, or empty)
 //   group 2: the URL body (no closing paren / matching quote)
@@ -35,10 +44,10 @@ const URL_RE_CLOSE = String.raw`\1\s*\)`;
  * that 404 against the AEM clientlib.
  *
  * In `writeBundle`, every emitted `.css` file in the build output directory
- * is scanned and any `url(...)` whose body contains `resources/<configured-sub>/`
- * is rewritten in place to `../resources/<sub>/<rest>`. Other URLs (absolute
- * `http(s)://`, `data:`, and paths that don't go through a configured
- * `resources/<sub>/` bucket) are left untouched.
+ * tree is scanned and any `url(...)` whose body contains `resources/<configured-sub>/`
+ * is rewritten in place to `<resourcePrefix>resources/<sub>/<rest>`. Other URLs
+ * (absolute `http(s)://`, `data:`, and paths that don't go through a
+ * configured `resources/<sub>/` bucket) are left untouched.
  *
  * `writeBundle` is used instead of `generateBundle` because Vite's lib-mode
  * CSS extraction emits `.css` outside the Rollup chunk map.
@@ -58,6 +67,7 @@ export function aemCssUrlPassthrough(
   const dirs = (options.resourceDirs && options.resourceDirs.length > 0
     ? options.resourceDirs
     : DEFAULT_RESOURCE_DIRS) as readonly string[];
+  const prefix = options.resourcePrefix ?? DEFAULT_RESOURCE_PREFIX;
   const escaped = dirs.map(escapeRegex).join('|');
   const urlRe = new RegExp(`${URL_RE_OPEN}${URL_RE_BODY}${URL_RE_CLOSE}`, 'g');
   const resourceMarkerRe = new RegExp(`(^|/)resources/(${escaped})/`);
@@ -74,31 +84,44 @@ export function aemCssUrlPassthrough(
       const dirRaw = outputOptions.dir ?? resolved?.build.outDir ?? 'dist';
       const dir = path.isAbsolute(dirRaw) ? dirRaw : path.resolve(root, dirRaw);
 
-      let entries;
-      try {
-        entries = await fs.readdir(dir, { withFileTypes: true });
-      } catch {
-        return;
-      }
-      for (const entry of entries) {
-        if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.css')) {
-          continue;
-        }
-        const full = path.join(dir, entry.name);
-        const source = await fs.readFile(full, 'utf8');
-        const rewritten = source.replace(urlRe, (match, quote, raw) => {
-          if (shouldSkip(raw)) return match;
-          const m = resourceMarkerRe.exec(raw);
-          if (!m) return match;
-          const tail = raw.slice(raw.indexOf(`resources/${m[2]}/`));
-          return `url(${quote}../${tail}${quote})`;
-        });
-        if (rewritten !== source) {
-          await fs.writeFile(full, rewritten, 'utf8');
-        }
-      }
+      await rewriteCssInTree(dir, urlRe, resourceMarkerRe, prefix);
     },
   };
+}
+
+async function rewriteCssInTree(
+  dir: string,
+  urlRe: RegExp,
+  resourceMarkerRe: RegExp,
+  prefix: string,
+): Promise<void> {
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await rewriteCssInTree(full, urlRe, resourceMarkerRe, prefix);
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.css')) {
+      continue;
+    }
+    const source = await fs.readFile(full, 'utf8');
+    const rewritten = source.replace(urlRe, (match, quote, raw) => {
+      if (shouldSkip(raw)) return match;
+      const m = resourceMarkerRe.exec(raw);
+      if (!m) return match;
+      const tail = raw.slice(raw.indexOf(`resources/${m[2]}/`));
+      return `url(${quote}${prefix}${tail}${quote})`;
+    });
+    if (rewritten !== source) {
+      await fs.writeFile(full, rewritten, 'utf8');
+    }
+  }
 }
 
 function shouldSkip(raw: string): boolean {

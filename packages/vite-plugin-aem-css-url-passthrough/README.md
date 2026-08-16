@@ -29,7 +29,7 @@ file, producing paths like `../../components/header/resources/images/foo.svg`
 that 404 against the deployed clientlib.
 
 This plugin runs at `writeBundle`, scans every emitted `.css` file in the
-build output directory, and rewrites every `url(...)` whose body contains
+build output directory tree, and rewrites every `url(...)` whose body contains
 `resources/<configured-sub>/` to the canonical `../resources/<sub>/<rest>`
 form. Other URLs are left untouched.
 
@@ -89,15 +89,21 @@ global value.
 interface AemCssUrlPassthroughOptions {
   /** Default: ["images", "fonts"]. */
   resourceDirs?: readonly string[];
+  /**
+   * Path prefix written in front of the rewritten `resources/<sub>/<file>`
+   * tail. Default: "../" (canonical AEM clientlib form).
+   */
+  resourcePrefix?: string;
 }
 ```
 
 ## Behavior
 
-- **Only `.css` files in the build output directory are scanned.** No URL
-  rewriting touches the bundled JavaScript or any nested subdirectory.
+- **Every `.css` file in the build output directory tree is scanned**
+  (recursively, including `assets/` subtrees). No URL rewriting touches the
+  bundled JavaScript.
 - **Only `url(...)`s whose body contains `resources/<configured-sub>/`** are
-  rewritten. The rewritten URL becomes `../resources/<sub>/<rest>`.
+  rewritten. The rewritten URL becomes `<resourcePrefix>resources/<sub>/<rest>`.
 - **Data URIs, absolute `http(s)://` URLs, and protocol-relative `//host`
   URLs are skipped.** External CDN references are never touched.
 - **Idempotent.** A url() already in canonical form (`url(../resources/...)`)
@@ -107,9 +113,14 @@ interface AemCssUrlPassthroughOptions {
 
 ## Notes & caveats
 
-- The plugin only walks the top level of the build output directory. AEM
-  clientlib builds emit a single flat `<name>.css` per clientlib, so this is
-  by design.
+- **The rewrite only applies to `url()`s Vite leaves unchanged.** If Vite
+  resolves the referenced file at build time (i.e. the file exists relative
+  to the source SCSS), it rewrites the URL to a hashed asset path and the
+  original `resources/<sub>/` specifier is no longer recoverable. Keep
+  clientlib resources outside the Vite resolution graph — reference them by
+  the clientlib-relative path even when the file does not exist at that
+  location relative to the SCSS source (Vite logs "didn't resolve at build
+  time, it will remain unchanged").
 - Configure every `resources/<sub>/` bucket your stylesheets reference. If a
   url() goes through a directory you didn't list, it will be left as-is and
   will likely 404 against the AEM clientlib.
