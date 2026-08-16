@@ -32,9 +32,14 @@ function normalizeEntries(options: AemResourcesOptions): ResourceCopy[] {
 
 /**
  * Recursively count "real" files under `src`, skipping placeholder
- * markers like `.gitkeep`. Returns 0 if `src` is missing or empty.
+ * markers like `.gitkeep`. Symlinks are followed (`stat`), so symlinked
+ * files and directories count as real content. Returns 0 if `src` is
+ * missing or empty.
  */
-async function countRealFiles(src: string): Promise<number> {
+async function countRealFiles(
+  src: string,
+  seen: Set<string> = new Set(),
+): Promise<number> {
   let entries;
   try {
     entries = await fs.readdir(src, { withFileTypes: true });
@@ -44,9 +49,26 @@ async function countRealFiles(src: string): Promise<number> {
   let count = 0;
   for (const entry of entries) {
     const child = path.join(src, entry.name);
-    if (entry.isDirectory()) {
-      count += await countRealFiles(child);
-    } else if (entry.isFile() && !PLACEHOLDER_NAMES.has(entry.name)) {
+    // Follow symlinks but never revisit a real path: `stat` resolves links,
+    // and the seen-set breaks symlink cycles (a link pointing at an ancestor
+    // would otherwise recurse forever).
+    let real = child;
+    try {
+      real = await fs.realpath(child);
+    } catch {
+      continue; // broken symlink — nothing to copy
+    }
+    if (seen.has(real)) continue;
+    seen.add(real);
+    let st;
+    try {
+      st = await fs.stat(child);
+    } catch {
+      continue;
+    }
+    if (st.isDirectory()) {
+      count += await countRealFiles(child, seen);
+    } else if (st.isFile() && !PLACEHOLDER_NAMES.has(entry.name)) {
       count += 1;
     }
   }
@@ -56,9 +78,15 @@ async function countRealFiles(src: string): Promise<number> {
 /**
  * Copy `src` → `dest` recursively. Skips `.gitkeep` placeholders and
  * directories that contain only placeholders, so empty trees never
- * materialize on disk. Returns the number of files copied.
+ * materialize on disk. Symlinked files and directories are copied (the
+ * link is followed); broken links are skipped. Returns the number of files
+ * copied.
  */
-async function copyTree(src: string, dest: string): Promise<number> {
+async function copyTree(
+  src: string,
+  dest: string,
+  seen: Set<string> = new Set(),
+): Promise<number> {
   let entries;
   try {
     entries = await fs.readdir(src, { withFileTypes: true });
@@ -69,9 +97,23 @@ async function copyTree(src: string, dest: string): Promise<number> {
   for (const entry of entries) {
     const s = path.join(src, entry.name);
     const d = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copied += await copyTree(s, d);
-    } else if (entry.isFile() && !PLACEHOLDER_NAMES.has(entry.name)) {
+    let real = s;
+    try {
+      real = await fs.realpath(s);
+    } catch {
+      continue;
+    }
+    if (seen.has(real)) continue;
+    seen.add(real);
+    let st;
+    try {
+      st = await fs.stat(s);
+    } catch {
+      continue;
+    }
+    if (st.isDirectory()) {
+      copied += await copyTree(s, d, seen);
+    } else if (st.isFile() && !PLACEHOLDER_NAMES.has(entry.name)) {
       await fs.mkdir(dest, { recursive: true });
       await fs.copyFile(s, d);
       copied += 1;
@@ -88,8 +130,10 @@ async function copyTree(src: string, dest: string): Promise<number> {
  * Behavior:
  * - No URL rewriting; files are byte-copied.
  * - `.gitkeep` placeholders are skipped.
+ * - Symlinked files and directories are copied (links are followed);
+ *   symlink cycles are broken by tracking visited real paths.
  * - A `from` that contains only placeholders (or does not exist) is a
- *   no-op: no destination directory is created.
+ *   no-op: no destination directory is created, and a warning is emitted.
  */
 export function aemResources(options: AemResourcesOptions): Plugin {
   const entries = normalizeEntries(options);
@@ -117,7 +161,15 @@ export function aemResources(options: AemResourcesOptions): Plugin {
           ? toRel
           : path.resolve(outDir, toRel);
 
-        if ((await countRealFiles(fromAbs)) === 0) continue;
+        if ((await countRealFiles(fromAbs)) === 0) {
+          (
+            this as { warn?: (msg: string) => void } | undefined
+          )?.warn?.(
+            `aemvite:aem-resources: '${fromAbs}' contains no files — ` +
+              `nothing was copied to '${toRel}'`,
+          );
+          continue;
+        }
         await copyTree(fromAbs, toAbs);
       }
     },

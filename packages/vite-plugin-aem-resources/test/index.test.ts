@@ -146,3 +146,55 @@ describe('aemResources', () => {
     expect(await fs.readFile(path.join(outDir, 'resources', 'a.txt'), 'utf8')).toBe('A');
   });
 });
+
+describe('aemResources — symlinks and warnings', () => {
+  it('copies symlinked files (followed, not skipped)', async () => {
+    const root = tmpRoot;
+    const real = path.join(root, 'real', 'shared.txt');
+    await writeFile(real, 'SHARED');
+    const from = path.join(root, 'src', 'resources');
+    await fs.mkdir(path.join(from, 'fonts'), { recursive: true });
+    await fs.symlink(real, path.join(from, 'fonts', 'shared.txt'));
+
+    const outDir = path.join(root, 'dist', 'clientlib-site');
+    await fs.mkdir(outDir, { recursive: true });
+
+    await runPlugin(aemResources({ from, to: 'resources' }), root, outDir);
+
+    const dest = path.join(outDir, 'resources', 'fonts', 'shared.txt');
+    expect(await exists(dest)).toBe(true);
+    expect(await fs.readFile(dest, 'utf8')).toBe('SHARED');
+  });
+
+  it('copies trees behind a symlinked directory', async () => {
+    const root = tmpRoot;
+    await writeFile(path.join(root, 'real-assets', 'images', 'logo.svg'), '<svg/>');
+    const from = path.join(root, 'src', 'resources');
+    await fs.mkdir(path.join(root, 'src'), { recursive: true });
+    await fs.symlink(path.join(root, 'real-assets'), from);
+
+    const outDir = path.join(root, 'dist', 'clientlib-site');
+    await fs.mkdir(outDir, { recursive: true });
+
+    await runPlugin(aemResources({ from, to: 'resources' }), root, outDir);
+
+    expect(await exists(path.join(outDir, 'resources', 'images', 'logo.svg'))).toBe(true);
+  });
+
+  it('warns when a configured from contains zero real files', async () => {
+    const root = tmpRoot;
+    const from = path.join(root, 'src', 'missing');
+    const outDir = path.join(root, 'dist');
+    await fs.mkdir(outDir, { recursive: true });
+
+    const plugin = aemResources({ from, to: 'resources' });
+    const warnings: string[] = [];
+    const cfgHook = plugin.configResolved as ConfigResolvedHook;
+    const closeHook = plugin.closeBundle as CloseBundleHook;
+    cfgHook({ root, build: { outDir } });
+    await closeHook.call({ warn: (msg: string) => warnings.push(msg) } as never);
+
+    expect(warnings.length).toBe(1);
+    expect(warnings[0]).toContain('contains no files');
+  });
+});
