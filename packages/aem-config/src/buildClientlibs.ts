@@ -44,8 +44,9 @@ export async function buildClientlibs(
   const { mode, configPath } = options;
   const configDir = path.dirname(path.resolve(configPath));
   const outDir = path.resolve(configDir, options.outDir ?? "dist");
+  assertSafeOutDir(outDir, configDir);
 
-  const config = await loadAemConfig(configPath);
+  const config = await loadAemConfig(configPath, { mode });
   const clientLibRoot = path.resolve(configDir, config.clientLibRoot);
 
   // The handlebars plugin is only imported when at least one clientlib
@@ -100,7 +101,59 @@ export async function buildClientlibs(
     await emitClientlib({ clientlib, outDir: clientLibRoot, files });
   }
 
+  // Remove `clientlib-*` folders that are no longer part of the config so
+  // removed/renamed clientlibs stop shipping to AEM.
+  await removeStaleClientlibs(
+    clientLibRoot,
+    config.clientlibs.map((c) => `clientlib-${c.name}`),
+  );
+
   return { config, outDir };
+}
+
+/**
+ * Guard against `outDir` being the config dir itself (or containing it):
+ * `--out-dir .` would otherwise `rm -rf` the whole project before building.
+ */
+function assertSafeOutDir(outDir: string, configDir: string): void {
+  const rel = path.relative(outDir, configDir);
+  const containsConfig =
+    rel === "" ||
+    (!rel.startsWith(`..${path.sep}`) &&
+      rel !== ".." &&
+      !path.isAbsolute(rel));
+  if (containsConfig) {
+    throw new Error(
+      `Refusing to build: outDir ${outDir} contains the AEM config at ` +
+        `${configDir}. Choose an outDir that does not include the config ` +
+        `file to avoid deleting your sources.`,
+    );
+  }
+}
+
+/**
+ * Remove `clientlib-*` folders in `clientLibRoot` that are not in `names`.
+ * Only directories matching the `clientlib-` prefix are considered.
+ */
+async function removeStaleClientlibs(
+  clientLibRoot: string,
+  names: string[],
+): Promise<void> {
+  let entries;
+  try {
+    entries = await readdir(clientLibRoot, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  const keep = new Set(names);
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith("clientlib-")) continue;
+    if (keep.has(entry.name)) continue;
+    await rm(path.join(clientLibRoot, entry.name), {
+      recursive: true,
+      force: true,
+    });
+  }
 }
 
 type ViteHelpers = {
@@ -237,6 +290,11 @@ function buildInlineConfig(
  * so AEM serves them as plain static files. The emitter's `resources` bucket
  * preserves the nested `sourcemaps/` prefix from the basename.
  *
+ * The whole staging dir is walked so no emitted file is silently dropped:
+ * every file outside the top-level code bundles (Vite assets emitted at the
+ * root, `assets/` subtrees, fonts, wasm, …) lands in the `resources/` bucket,
+ * preserving its relative path.
+ *
  * AEM's clientlib aggregator concatenates `js/` / `css/` contents into one
  * served response, and Sling URL decomposition (`site.js.map` → selectors=js,
  * extension=map) 404s the top-level proxy path. Routing maps through the
@@ -247,31 +305,33 @@ async function collectStagedFiles(
   stagingDir: string,
   files: StagedFile[],
 ): Promise<void> {
-  for (const entry of await readdir(stagingDir, { withFileTypes: true })) {
-    if (!entry.isFile()) continue;
-    const lower = entry.name.toLowerCase();
-    const ext = path.extname(lower);
-    const isCodeFile = ext === ".js" || ext === ".css";
-    const isSourcemap =
-      lower.endsWith(".js.map") || lower.endsWith(".css.map");
-    if (isCodeFile) {
+  for (const rel of await walk(stagingDir)) {
+    const posix = rel.split(path.sep).join("/");
+    const topLevel = !posix.includes("/");
+    const basename = posix.startsWith("resources/")
+      ? posix.slice("resources/".length)
+      : posix;
+    const lower = basename.toLowerCase();
+    if (topLevel && (lower.endsWith(".js") || lower.endsWith(".css"))) {
+      // The per-clientlib code bundles (e.g. `site.js` / `site.css`).
       files.push({
-        source: path.join(stagingDir, entry.name),
-        basename: entry.name,
+        source: path.join(stagingDir, rel),
+        basename,
       });
-    } else if (isSourcemap) {
+    } else if (topLevel && lower.endsWith(".map")) {
       // Nested basename routes the map to `resources/sourcemaps/<file>` via
       // the emitter's `resources` bucket (classifyFile routes `.map` there).
       files.push({
-        source: path.join(stagingDir, entry.name),
-        basename: `sourcemaps/${entry.name}`,
+        source: path.join(stagingDir, rel),
+        basename: `sourcemaps/${basename}`,
       });
+    } else {
+      // Everything else (images, fonts, wasm, nested assets, nested
+      // subdirectories) is routed to the emitter, which buckets it by
+      // extension (nested `.js`/`.css` end up in the code buckets, the rest
+      // under `resources/`).
+      files.push({ source: path.join(stagingDir, rel), basename });
     }
-  }
-
-  const resourcesDir = path.join(stagingDir, "resources");
-  for (const rel of await walk(resourcesDir)) {
-    files.push({ source: path.join(resourcesDir, rel), basename: rel });
   }
 }
 

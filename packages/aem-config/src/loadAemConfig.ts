@@ -1,7 +1,16 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { mergeDefaults } from "./mergeDefaults.js";
-import type { AemConfig, ResolvedAemConfig } from "./types.js";
+import type { AemConfig, BuildMode, ResolvedAemConfig } from "./types.js";
+
+/** Options for {@link loadAemConfig}. */
+export interface LoadAemConfigOptions {
+  /**
+   * Build mode forwarded to function-style configs
+   * (`export default ({ mode }) => ...`). Defaults to `"production"`.
+   */
+  mode?: BuildMode;
+}
 
 /**
  * Load an `aem.config.ts` (or `.js`/`.mjs`) file from disk and merge defaults.
@@ -12,24 +21,28 @@ import type { AemConfig, ResolvedAemConfig } from "./types.js";
  */
 export async function loadAemConfig(
   configPath: string,
+  options: LoadAemConfigOptions = {},
 ): Promise<ResolvedAemConfig> {
   const absolute = path.resolve(configPath);
   const ext = path.extname(absolute).toLowerCase();
 
   const raw =
     ext === ".ts" || ext === ".mts" || ext === ".cts"
-      ? await loadViaVite(absolute)
+      ? await loadViaVite(absolute, options.mode)
       : await loadViaImport(absolute);
 
   return mergeDefaults(raw);
 }
 
-async function loadViaVite(absolute: string): Promise<AemConfig> {
+async function loadViaVite(
+  absolute: string,
+  mode: BuildMode = "production",
+): Promise<AemConfig> {
   // Import Vite lazily so consumers that pre-resolve their config (or stub
   // this loader in tests) don't pay the cost of loading Vite up front.
   const { loadConfigFromFile } = await import("vite");
   const result = await loadConfigFromFile(
-    { command: "build", mode: "production" },
+    { command: "build", mode },
     absolute,
   );
   if (!result) {

@@ -55,3 +55,25 @@ export default { clientLibRoot: "./clientlibs", clientlibs } as const;
 });
 
 
+
+describe("loadAemConfig (mode forwarding)", () => {
+  it("forwards the build mode to function-style configs", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "aem-config-mode-"));
+    const file = path.join(dir, "aem.config.ts");
+    writeFileSync(
+      file,
+      `export default ({ mode }: { mode: string }) => ({
+  clientLibRoot: "./clientlibs",
+  clientlibs: [{ name: "site", entry: "src/main.ts", categories: ["aemvite.site"] }],
+  build: mode === "development" ? { minify: false } : { minify: { js: true, css: true } },
+});
+`,
+    );
+
+    const dev = await loadAemConfig(file, { mode: "development" });
+    expect(dev.build?.minify).toBe(false);
+
+    const prod = await loadAemConfig(file, { mode: "production" });
+    expect(prod.build?.minify).toEqual({ js: true, css: true });
+  });
+});

@@ -135,3 +135,53 @@ describe("mergeDefaults", () => {
     expect(JSON.stringify(config)).toBe(snapshot);
   });
 });
+
+describe("mergeDefaults (validation and isolation)", () => {
+  it("resolved clientlibs do not share the exported defaults arrays", () => {
+    const merged = mergeDefaults(
+      defineAemConfig({
+        clientLibRoot: "./clientlibs",
+        clientlibs: [
+          { name: "a", entry: "a.ts", categories: ["a"] },
+          { name: "b", entry: "b.ts", categories: ["b"] },
+        ],
+      }),
+    );
+    expect(merged.clientlibs[0]!.cssProcessor).toEqual(defaults.cssProcessor);
+    expect(merged.clientlibs[0]!.cssProcessor).not.toBe(defaults.cssProcessor);
+    expect(merged.clientlibs[0]!.jsProcessor).not.toBe(defaults.jsProcessor);
+    expect(merged.clientlibs[1]!.cssProcessor).not.toBe(defaults.cssProcessor);
+  });
+
+  it("rejects clientlib names that could escape the output directory", () => {
+    for (const name of ["../../evil", "a/b", "..", ".", ""]) {
+      expect(() =>
+        mergeDefaults({
+          clientLibRoot: "./clientlibs",
+          clientlibs: [{ name, entry: "a.ts", categories: ["a"] }],
+        }),
+      ).toThrow(/name/);
+    }
+  });
+
+  it("rejects duplicate clientlib names", () => {
+    expect(() =>
+      mergeDefaults({
+        clientLibRoot: "./clientlibs",
+        clientlibs: [
+          { name: "site", entry: "a.ts", categories: ["a"] },
+          { name: "site", entry: "b.ts", categories: ["b"] },
+        ],
+      }),
+    ).toThrow(/Duplicate clientlib name/);
+  });
+
+  it("rejects non-object clientlib entries", () => {
+    expect(() =>
+      mergeDefaults({
+        clientLibRoot: "./clientlibs",
+        clientlibs: [null as unknown as never],
+      }),
+    ).toThrow(/Invalid clientlib entry/);
+  });
+});
