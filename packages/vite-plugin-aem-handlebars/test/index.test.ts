@@ -121,3 +121,54 @@ describe('aemHandlebars', () => {
     });
   });
 });
+
+describe('aemHandlebars — strict precompilation', () => {
+  /**
+   * Materialise the generated ESM module on disk (next to this test, so
+   * `handlebars/runtime` resolves) and dynamically import it to obtain the
+   * render function.
+   */
+  async function materializeModule(code: string): Promise<(data: unknown) => string> {
+    const { fileURLToPath } = await import('node:url');
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const file = path.join(here, `.hbs-materialized-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`);
+    await fs.writeFile(file, code, 'utf8');
+    try {
+      const mod = (await import(`${new URL(`file://${file}`).href}?t=${Date.now()}`)) as {
+        default?: (data: unknown) => string;
+      };
+      if (!mod.default) throw new Error('materialized module has no default export');
+      return mod.default;
+    } finally {
+      await fs.rm(file, { force: true }).catch(() => {});
+    }
+  }
+
+  it('throws on missing deep property paths by default (strict: true)', async () => {
+    const plugin = aemHandlebars();
+    const id = await writeFile('strict.template.hbs', '<p>{{a.b.c}}</p>');
+    const result = await (plugin.transform as TransformHook)('', id);
+    expect(result).not.toBeNull();
+
+    const render = await materializeModule(result!.code);
+    expect(() => render({})).toThrow();
+  });
+
+  it('renders present paths correctly under the default', async () => {
+    const plugin = aemHandlebars();
+    const id = await writeFile('ok.template.hbs', '<p>{{name}}</p>');
+    const result = await (plugin.transform as TransformHook)('', id);
+
+    const render = await materializeModule(result!.code);
+    expect(render({ name: 'AEM' })).toBe('<p>AEM</p>');
+  });
+
+  it('allows opting out via precompileOptions', async () => {
+    const plugin = aemHandlebars({ precompileOptions: { strict: false } });
+    const id = await writeFile('loose.template.hbs', '<p>{{a.b.c}}</p>');
+    const result = await (plugin.transform as TransformHook)('', id);
+
+    const render = await materializeModule(result!.code);
+    expect(render({})).toBe('<p></p>');
+  });
+});
