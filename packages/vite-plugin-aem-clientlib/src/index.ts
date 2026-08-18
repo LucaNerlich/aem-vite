@@ -12,7 +12,11 @@ export {
   renderCssTxt,
 } from './descriptors.js';
 export { classifyFile } from './layout.js';
-export { emitClientlib, emitClientlibs } from './emit.js';
+export {
+  emitClientlib,
+  emitClientlibs,
+  isValidClientlibName,
+} from './emit.js';
 export { aemClientlibPlugin } from './plugin.js';
 export type {
   AemClientlibPluginOptions,

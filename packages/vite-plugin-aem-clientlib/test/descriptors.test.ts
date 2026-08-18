@@ -16,6 +16,27 @@ const EMBED_LIB: ClientlibDefinition = {
   embed: ['aemvite.shared.a', 'aemvite.shared.b'],
 };
 
+describe('renderContentXml (escaping)', () => {
+  it('escapes XML metacharacters in multi-value attributes', () => {
+    const xml = renderContentXml({
+      name: 'x',
+      categories: ['a&b<c>"d\'e'],
+      dependencies: ['x>y'],
+    });
+    expect(xml).toContain('categories="[a&amp;b&lt;c&gt;&quot;d&apos;e]"');
+    expect(xml).toContain('dependencies="[x&gt;y]"');
+    // The declaration and element structure stay well-formed.
+    expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
+    expect(xml).toContain('allowProxy="{Boolean}true"/>');
+  });
+
+  it('keeps clean values byte-identical (no escaping noise)', () => {
+    const xml = renderContentXml(EMBED_LIB);
+    expect(xml).toContain('embed="[aemvite.shared.a,aemvite.shared.b]"');
+    expect(xml).not.toContain('&amp;');
+  });
+});
+
 describe('renderContentXml (embed attribute)', () => {
   it('matches golden clientlib-embed/.content.xml byte-for-byte', async () => {
     const got = Buffer.from(renderContentXml(EMBED_LIB), 'utf8');
