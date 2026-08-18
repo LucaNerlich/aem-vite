@@ -102,3 +102,45 @@ describe('expandStyleGlobsWithResult', () => {
     expect(result.files).toBe(5);
   });
 });
+
+describe('expandStyleGlobs — comments and strings', () => {
+  it('does not expand glob @-rules inside // line comments', () => {
+    const source = `// @import './components/**/*.scss';\n@import 'variables';\n`;
+    expect(expandStyleGlobs(source, SCSS_ENTRY)).toBe(source);
+  });
+
+  it('does not expand glob @-rules inside block comments', () => {
+    const source = `/* @import './components/**/*.scss'; */\n@import 'variables';\n`;
+    expect(expandStyleGlobs(source, SCSS_ENTRY)).toBe(source);
+  });
+
+  it('does not expand glob @-rules inside string literals', () => {
+    const source = `.a { content: "@import './components/**/*.scss';"; }\n@import 'variables';\n`;
+    expect(expandStyleGlobs(source, SCSS_ENTRY)).toBe(source);
+  });
+
+  it('still expands live statements on the same line as a comment', () => {
+    const source = `// disabled: @import './nope/*.scss';\n@import './styles/*.scss'; // trailing\n`;
+    const out = expandStyleGlobs(source, SCSS_ENTRY);
+    expect(out).toContain("// disabled: @import './nope/*.scss';");
+    expect(out).toContain("@import './styles/footer.scss';");
+    expect(out).toContain("@import './styles/header.scss';");
+    expect(out).toContain('// trailing');
+  });
+});
+
+describe('expandStyleGlobsWithResult — unmatched', () => {
+  it('reports specifiers that matched zero files', () => {
+    const source = `@import './nope/*.scss';\n`;
+    const result = expandStyleGlobsWithResult(source, SCSS_ENTRY);
+    expect(result.code).toBe(source);
+    expect(result.unmatched).toEqual(['./nope/*.scss']);
+  });
+
+  it('does not report matched specifiers', () => {
+    const source = `@import './styles/*.scss';\n`;
+    const result = expandStyleGlobsWithResult(source, SCSS_ENTRY);
+    expect(result.expanded).toBe(1);
+    expect(result.unmatched).toEqual([]);
+  });
+});

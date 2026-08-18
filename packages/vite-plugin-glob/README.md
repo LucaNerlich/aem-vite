@@ -39,9 +39,16 @@ It does **not** touch:
 
 - `@`-rules whose specifier does not contain glob magic (e.g.
   `@import "variables";` is preserved verbatim).
+- `@`-rules inside comments (`//` and `/* */`) or string literals —
+  commented-out glob imports stay commented out.
 - `url(...)` references (parity with `css-loader { url: false }`).
 - JavaScript / TypeScript files. Use Vite's native `import.meta.glob` for JS
   glob imports.
+
+In dev/watch, adding or removing a file that a glob matches invalidates the
+importing module automatically, so newly created partials show up without a
+restart. Glob specifiers that match zero files are left in place and reported
+as a build/dev warning.
 
 ## Usage
 
