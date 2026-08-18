@@ -203,3 +203,122 @@ export default {
     expect(map.sources).toContain("aemvite://site/src/main.ts");
   });
 });
+
+describe("buildClientlibs (outDir safety)", () => {
+  let dir: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "aemvite-build-guard-"));
+    await writeFile(
+      path.join(dir, "aem.config.mjs"),
+      `export default {
+  clientLibRoot: "./clientlibs",
+  clientlibs: [{ name: "site", entry: "", categories: ["proj.site"] }],
+};
+`,
+    );
+  });
+
+  afterAll(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("refuses to wipe an outDir that contains the config file", async () => {
+    const configPath = path.join(dir, "aem.config.mjs");
+    await expect(
+      buildClientlibs({ mode: "production", configPath, outDir: "." }),
+    ).rejects.toThrow(/outDir/);
+    expect(existsSync(configPath)).toBe(true);
+  });
+});
+
+describe("buildClientlibs (stale folder cleanup)", () => {
+  let dir: string;
+  let outRoot: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "aemvite-build-stale-"));
+    outRoot = path.join(dir, "clientlibs");
+    await mkdir(path.join(outRoot, "clientlib-stale"), { recursive: true });
+    await mkdir(path.join(outRoot, "unrelated-dir"), { recursive: true });
+    await writeFile(path.join(outRoot, "clientlib-stale", "old.css"), "old");
+    await writeFile(path.join(outRoot, "unrelated-dir", "keep.txt"), "keep");
+    await writeFile(
+      path.join(dir, "aem.config.mjs"),
+      `export default {
+  clientLibRoot: ${JSON.stringify(outRoot)},
+  clientlibs: [{ name: "site", entry: "", categories: ["proj.site"] }],
+};
+`,
+    );
+
+    await buildClientlibs({
+      mode: "production",
+      configPath: path.join(dir, "aem.config.mjs"),
+    });
+  });
+
+  afterAll(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("removes clientlib-* folders that are no longer in the config", () => {
+    expect(existsSync(path.join(outRoot, "clientlib-stale"))).toBe(false);
+  });
+
+  it("keeps non-clientlib folders and the current clientlib", () => {
+    expect(existsSync(path.join(outRoot, "unrelated-dir", "keep.txt"))).toBe(true);
+    expect(existsSync(path.join(outRoot, "clientlib-site", ".content.xml"))).toBe(true);
+  });
+});
+
+/**
+ * Files Vite (or an author plugin) emits at the staging-dir root that are
+ * not part of the per-clientlib code bundles must not be silently dropped:
+ * they belong under `resources/` in the emitted clientlib.
+ */
+describe("buildClientlibs (emitted assets)", () => {
+  let dir: string;
+  let outRoot: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "aemvite-build-assets-"));
+    outRoot = path.join(dir, "clientlibs");
+
+    await mkdir(path.join(dir, "src"), { recursive: true });
+    await writeFile(
+      path.join(dir, "src", "main.ts"),
+      "export const value: number = 1;\n",
+    );
+    await writeFile(
+      path.join(dir, "aem.config.mjs"),
+      `export default {
+  clientLibRoot: ${JSON.stringify(outRoot)},
+  plugins: [{
+    name: "asset-emitter",
+    apply: "build",
+    generateBundle() { this.emitFile({ type: "asset", fileName: "extra.png", source: "PNG-BYTES" }); },
+  }],
+  clientlibs: [
+    { name: "site", entry: "src/main.ts", categories: ["proj.site"], build: { minify: false } },
+  ],
+};
+`,
+    );
+
+    await buildClientlibs({
+      mode: "production",
+      configPath: path.join(dir, "aem.config.mjs"),
+    });
+  });
+
+  afterAll(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("routes root-emitted assets into the clientlib resources/ bucket", async () => {
+    const out = path.join(outRoot, "clientlib-site", "resources", "extra.png");
+    expect(existsSync(out)).toBe(true);
+    expect(await readFile(out, "utf8")).toBe("PNG-BYTES");
+  });
+});
