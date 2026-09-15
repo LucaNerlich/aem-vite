@@ -1,28 +1,28 @@
 {
   "name": "aem-maven-archetype",
   "version": "1.0.0",
+  "private": true,
   "description": "Generates an AEM Frontend project with Vite",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
     "type": "git",
     "url": ""
   },
-  "private": true,
-  "license": "SEE LICENSE IN LICENSE.txt",
   "type": "module",
   "scripts": {
     "dev": "aem-build --mode dev --config aem.config.mjs",
     "prod": "aem-build --mode prod --config aem.config.mjs",
-    "start": "vp dev",
-    "test": "vp test run"
+    "start": "vite",
+    "test": "vitest run"
   },
+  "dependencies": {},
   "devDependencies": {
     "@aemvite/aem-config": "file:../../packages/aem-config",
     "@aemvite/vite-plugin-aem-clientlib": "file:../../packages/vite-plugin-aem-clientlib",
     "@aemvite/vite-plugin-aem-resources": "file:../../packages/vite-plugin-aem-resources",
     "@aemvite/vite-plugin-glob": "file:../../packages/vite-plugin-glob",
     "sass": "^1.101.0",
-    "vite-plus": "^0.2.1"
-  },
-  "dependencies": {
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9"
   }
 }

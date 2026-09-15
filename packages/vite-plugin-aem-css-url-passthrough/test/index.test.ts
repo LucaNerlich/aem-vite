@@ -1,14 +1,11 @@
 import { promises as fs } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { aemCssUrlPassthrough } from '../src/index.js';
 
-type ConfigResolvedHook = (config: {
-  root: string;
-  build: { outDir: string };
-}) => void;
+type ConfigResolvedHook = (config: { root: string; build: { outDir: string } }) => void;
 type WriteBundleHook = (options: { dir?: string }) => Promise<void> | void;
 
 let tmpRoot: string;
@@ -97,10 +94,7 @@ describe('aemCssUrlPassthrough', () => {
       ].join('\n'),
     );
 
-    await runPlugin(
-      aemCssUrlPassthrough({ resourceDirs: ['icons'] }),
-      dir,
-    );
+    await runPlugin(aemCssUrlPassthrough({ resourceDirs: ['icons'] }), dir);
 
     const out = await fs.readFile(path.join(dir, 'site.css'), 'utf8');
     expect(out).toContain('url(../resources/icons/star.svg)');
@@ -128,9 +122,7 @@ describe('aemCssUrlPassthrough', () => {
 
   it('is a no-op when the output directory does not exist', async () => {
     const missing = path.join(tmpRoot, 'never-built');
-    await expect(
-      runPlugin(aemCssUrlPassthrough(), missing),
-    ).resolves.toBeUndefined();
+    await expect(runPlugin(aemCssUrlPassthrough(), missing)).resolves.toBeUndefined();
   });
 });
 

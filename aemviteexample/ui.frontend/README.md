@@ -27,14 +27,14 @@ npm ci
 
 ## Scripts
 
-| Script         | What it does                                                                                          |
-|----------------|--------------------------------------------------------------------------------------------------------|
-| `npm run dev`  | Build all clientlibs in development mode — no minification, inline sourcemaps.                        |
-| `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps.             |
+| Script         | What it does                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| `npm run dev`  | Build all clientlibs in development mode — no minification, inline sourcemaps.            |
+| `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps. |
 
 Both call the `aem-build` CLI shipped with `@aemvite/aem-config`. There is no custom build
 script — all configuration lives in `aem.config.mjs`. This module deliberately installs only
-`@aemvite/aem-config` (no `vite`/`vitest`/`vite-plus` of its own) as the minimal-consumer
+`@aemvite/aem-config` (no `vite`/`vitest` of its own) as the minimal-consumer
 reference point — see [`aemvite/ui.frontend`](../../aemvite/ui.frontend) for the fuller
 reference setup with its own dev server, tests, and linting.
 
@@ -120,14 +120,14 @@ Replace every webpack-related entry with a single dependency on `@aemvite/aem-co
   "private": true,
   "type": "module",
   "scripts": {
-    "dev":  "aem-build --mode dev  --config aem.config.mjs",
-    "prod": "aem-build --mode prod --config aem.config.mjs"
+    "dev": "aem-build --mode dev  --config aem.config.mjs",
+    "prod": "aem-build --mode prod --config aem.config.mjs",
   },
   "devDependencies": {
     "@aemvite/aem-config": "^0.3.1",
     "sass": "^1.101.0",
-    "typescript": "^5.6.0"
-  }
+    "typescript": "^5.6.0",
+  },
 }
 ```
 
@@ -223,10 +223,10 @@ modern config:
     "skipLibCheck": true,
     "isolatedModules": true,
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
   },
   "include": ["./src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
 }
 ```
 

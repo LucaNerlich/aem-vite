@@ -21,18 +21,18 @@ uninstall command, and the precise delete list. Cross-link the two as needed.
 
 ## 1. What changes — and what does **not**
 
-| | Before (archetype) | After (`@aemvite/*`) |
-|---|---|---|
-| JS bundler | webpack 5 + `ts-loader` + `webpack-cli` | Vite 8 + esbuild |
-| CSS pipeline | `sass-loader` → `postcss-loader` (autoprefixer / cssnano) → `css-loader` → `MiniCssExtractPlugin` | Sass (Vite-native) + esbuild minify |
-| SCSS glob imports | `glob-import-loader` | `@aemvite/vite-plugin-glob` |
-| JS glob imports | `glob-import-loader` | Vite-native `import.meta.glob` |
-| Resources copy | `copy-webpack-plugin` | `@aemvite/vite-plugin-aem-resources` |
-| Clientlib descriptors | `aem-clientlib-generator` driven by `clientlib.config.js` | `@aemvite/vite-plugin-aem-clientlib` driven by `aem.config.mjs` |
-| Lint at build time | `eslint-webpack-plugin` (+ `@typescript-eslint/*`) | none (intentionally removed; re-add ESLint as a standalone script later if you want) |
-| Dev server | `webpack-dev-server` | `vite` (optional `npm start`) |
-| Babel | `@babel/core` + plugins | gone — esbuild handles modern JS/TS |
-| Build orchestrator | `webpack --config ./webpack.{dev,prod}.js && clientlib --verbose` | `aem-build` CLI (in `@aemvite/aem-config`) |
+|                       | Before (archetype)                                                                                | After (`@aemvite/*`)                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| JS bundler            | webpack 5 + `ts-loader` + `webpack-cli`                                                           | Vite 8 + esbuild                                                                     |
+| CSS pipeline          | `sass-loader` → `postcss-loader` (autoprefixer / cssnano) → `css-loader` → `MiniCssExtractPlugin` | Sass (Vite-native) + esbuild minify                                                  |
+| SCSS glob imports     | `glob-import-loader`                                                                              | `@aemvite/vite-plugin-glob`                                                          |
+| JS glob imports       | `glob-import-loader`                                                                              | Vite-native `import.meta.glob`                                                       |
+| Resources copy        | `copy-webpack-plugin`                                                                             | `@aemvite/vite-plugin-aem-resources`                                                 |
+| Clientlib descriptors | `aem-clientlib-generator` driven by `clientlib.config.js`                                         | `@aemvite/vite-plugin-aem-clientlib` driven by `aem.config.mjs`                      |
+| Lint at build time    | `eslint-webpack-plugin` (+ `@typescript-eslint/*`)                                                | none (intentionally removed; re-add ESLint as a standalone script later if you want) |
+| Dev server            | `webpack-dev-server`                                                                              | `vite` (optional `npm start`)                                                        |
+| Babel                 | `@babel/core` + plugins                                                                           | gone — esbuild handles modern JS/TS                                                  |
+| Build orchestrator    | `webpack --config ./webpack.{dev,prod}.js && clientlib --verbose`                                 | `aem-build` CLI (in `@aemvite/aem-config`)                                           |
 
 What does **not** change:
 
@@ -59,10 +59,10 @@ What does **not** change:
 
 ## 2. Prerequisites
 
-- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` — the engines range required by vite-plus. Older
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` — the engines range required by tsdown, the build tool. Older
   Node fails `npm install` of `vite@^8` and also breaks
   `frontend-maven-plugin` invocations (`SyntaxError: ... does not provide an
-  export named 'styleText'`).
+export named 'styleText'`).
 - **npm** (Yarn / pnpm work, but `frontend-maven-plugin` defaults to npm; the
   reference uses npm).
 - **An AEM Maven multi-module project** that already wires `ui.frontend` →
@@ -80,31 +80,31 @@ The OOTB archetype ships these JS-build-related files in
 `aemvite/ui.frontend/`. Each is either replaced by an `@aemvite/*` mechanism
 or simply deleted.
 
-| OOTB file | Action | Replacement / notes |
-|---|---|---|
-| `webpack.common.js` | **delete** | Shared config now lives in `aem.config.mjs`. |
-| `webpack.dev.js` | **delete** | `aem-build --mode dev` (mode baselines: no minify, inline sourcemap). |
-| `webpack.prod.js` | **delete** | `aem-build --mode prod` (mode baselines: esbuild minify, no sourcemap). |
-| `clientlib.config.js` | **delete** | Clientlibs declared in `aem.config.mjs`; descriptors emitted by `@aemvite/vite-plugin-aem-clientlib`. |
-| `.babelrc` | **delete** | esbuild transpiles modern JS/TS directly; no Babel step. |
-| `.eslintrc.js` | **delete** | Build-time lint removed. Add ESLint back later as a standalone script if you want; it no longer participates in the build. |
-| `.eslintignore` | **delete** | Same as above. |
-| `tsconfig.json` | **keep** | Vite/esbuild and your IDE still consume it. |
-| `assembly.xml` | **keep** | Maven assembly is unchanged. |
-| `pom.xml` | **keep** | `frontend-maven-plugin` still runs `npm run prod` / `npm run dev` — only the script targets change. |
-| `package.json` | **edit** | Rewrite `scripts`, `devDependencies` (see step 6 and 7). |
-| `package-lock.json` | **regenerate** | Run `rm package-lock.json && npm install` after editing `package.json`. |
-| `src/main/webpack/site/main.ts` | **edit** | Swap `glob-import-loader`-style imports for Vite-native `import.meta.glob` (see step 8). |
-| `src/main/webpack/**/*.scss` | **keep** | Same Sass authoring; SCSS globs (`@import '...glob/**/*'`) are handled by `@aemvite/vite-plugin-glob`. |
-| `src/main/webpack/static/index.html` | optional | Used only by `vite` standalone dev server (`npm start`). Keep if you want a dev server, delete otherwise. |
-| `src/main/webpack/resources/` | **keep** | `@aemvite/vite-plugin-aem-resources` copies it into `clientlib-site/resources/`. Trees with only `.gitkeep` placeholders are no-ops (no empty `resources/` folder is emitted). |
+| OOTB file                            | Action         | Replacement / notes                                                                                                                                                            |
+| ------------------------------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `webpack.common.js`                  | **delete**     | Shared config now lives in `aem.config.mjs`.                                                                                                                                   |
+| `webpack.dev.js`                     | **delete**     | `aem-build --mode dev` (mode baselines: no minify, inline sourcemap).                                                                                                          |
+| `webpack.prod.js`                    | **delete**     | `aem-build --mode prod` (mode baselines: esbuild minify, no sourcemap).                                                                                                        |
+| `clientlib.config.js`                | **delete**     | Clientlibs declared in `aem.config.mjs`; descriptors emitted by `@aemvite/vite-plugin-aem-clientlib`.                                                                          |
+| `.babelrc`                           | **delete**     | esbuild transpiles modern JS/TS directly; no Babel step.                                                                                                                       |
+| `.eslintrc.js`                       | **delete**     | Build-time lint removed. Add ESLint back later as a standalone script if you want; it no longer participates in the build.                                                     |
+| `.eslintignore`                      | **delete**     | Same as above.                                                                                                                                                                 |
+| `tsconfig.json`                      | **keep**       | Vite/esbuild and your IDE still consume it.                                                                                                                                    |
+| `assembly.xml`                       | **keep**       | Maven assembly is unchanged.                                                                                                                                                   |
+| `pom.xml`                            | **keep**       | `frontend-maven-plugin` still runs `npm run prod` / `npm run dev` — only the script targets change.                                                                            |
+| `package.json`                       | **edit**       | Rewrite `scripts`, `devDependencies` (see step 6 and 7).                                                                                                                       |
+| `package-lock.json`                  | **regenerate** | Run `rm package-lock.json && npm install` after editing `package.json`.                                                                                                        |
+| `src/main/webpack/site/main.ts`      | **edit**       | Swap `glob-import-loader`-style imports for Vite-native `import.meta.glob` (see step 8).                                                                                       |
+| `src/main/webpack/**/*.scss`         | **keep**       | Same Sass authoring; SCSS globs (`@import '...glob/**/*'`) are handled by `@aemvite/vite-plugin-glob`.                                                                         |
+| `src/main/webpack/static/index.html` | optional       | Used only by `vite` standalone dev server (`npm start`). Keep if you want a dev server, delete otherwise.                                                                      |
+| `src/main/webpack/resources/`        | **keep**       | `@aemvite/vite-plugin-aem-resources` copies it into `clientlib-site/resources/`. Trees with only `.gitkeep` placeholders are no-ops (no empty `resources/` folder is emitted). |
 
 Files that are **added** during the migration:
 
-| New file | Purpose |
-|---|---|
-| `aem.config.mjs` | Declarative list of clientlibs (replaces `clientlib.config.js` + webpack entries). |
-| `vite.config.mjs` (optional) | Standalone Vite dev server, only needed if you want `npm start`. |
+| New file                     | Purpose                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `aem.config.mjs`             | Declarative list of clientlibs (replaces `clientlib.config.js` + webpack entries). |
+| `vite.config.mjs` (optional) | Standalone Vite dev server, only needed if you want `npm start`.                   |
 
 ---
 
@@ -122,51 +122,51 @@ archetype copy will look essentially identical (version pins may vary).
   "private": true,
   "main": "src/main/webpack/site/main.ts",
   "scripts": {
-    "dev":        "webpack --env dev --config ./webpack.dev.js && clientlib --verbose",
-    "prod":       "webpack --config ./webpack.prod.js && clientlib --verbose",
-    "start":      "webpack-dev-server --open --config ./webpack.dev.js",
-    "sync":       "aemsync -d -p ../ui.apps/src/main/content",
-    "chokidar":   "chokidar -c \"clientlib\" ./dist",
-    "aemsyncro":  "aemsync -w ../ui.apps/src/main/content",
-    "watch":      "npm-run-all --parallel start chokidar aemsyncro"
+    "dev": "webpack --env dev --config ./webpack.dev.js && clientlib --verbose",
+    "prod": "webpack --config ./webpack.prod.js && clientlib --verbose",
+    "start": "webpack-dev-server --open --config ./webpack.dev.js",
+    "sync": "aemsync -d -p ../ui.apps/src/main/content",
+    "chokidar": "chokidar -c \"clientlib\" ./dist",
+    "aemsyncro": "aemsync -w ../ui.apps/src/main/content",
+    "watch": "npm-run-all --parallel start chokidar aemsyncro",
   },
   "devDependencies": {
-    "@babel/core":                         "^7.0.0",
-    "@babel/plugin-proposal-class-properties":   "^7.3.3",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
     "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
-    "@typescript-eslint/eslint-plugin":    "^5.7.0",
-    "@typescript-eslint/parser":           "^5.7.0",
-    "acorn":                               "^6.1.0",
-    "aem-clientlib-generator":             "^1.8.0",
-    "aemsync":                             "^4.0.1",
-    "autoprefixer":                        "^9.2.1",
-    "browserslist":                        "^4.2.1",
-    "chokidar-cli":                        "^3.0.0",
-    "clean-webpack-plugin":                "^3.0.0",
-    "copy-webpack-plugin":                 "^10.1.0",
-    "css-loader":                          "^6.5.1",
-    "css-minimizer-webpack-plugin":        "^3.2.0",
-    "cssnano":                             "^5.0.12",
-    "eslint":                              "^8.4.1",
-    "eslint-webpack-plugin":               "^3.1.1",
-    "glob-import-loader":                  "^1.2.0",
-    "html-webpack-plugin":                 "^5.5.0",
-    "mini-css-extract-plugin":             "^2.4.5",
-    "postcss":                             "^8.2.15",
-    "postcss-loader":                      "^3.0.0",
-    "sass":                                "^1.45.0",
-    "sass-loader":                         "^12.4.0",
-    "source-map-loader":                   "^0.2.4",
-    "style-loader":                        "^0.14.1",
-    "terser-webpack-plugin":               "^5.2.5",
-    "ts-loader":                           "^9.2.6",
-    "tsconfig-paths-webpack-plugin":       "^3.2.0",
-    "typescript":                          "^4.8.2",
-    "webpack":                             "^5.76.0",
-    "webpack-cli":                         "^4.9.1",
-    "webpack-dev-server":                  "^4.6.0",
-    "webpack-merge":                       "^5.8.0"
-  }
+    "@typescript-eslint/eslint-plugin": "^5.7.0",
+    "@typescript-eslint/parser": "^5.7.0",
+    "acorn": "^6.1.0",
+    "aem-clientlib-generator": "^1.8.0",
+    "aemsync": "^4.0.1",
+    "autoprefixer": "^9.2.1",
+    "browserslist": "^4.2.1",
+    "chokidar-cli": "^3.0.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^10.1.0",
+    "css-loader": "^6.5.1",
+    "css-minimizer-webpack-plugin": "^3.2.0",
+    "cssnano": "^5.0.12",
+    "eslint": "^8.4.1",
+    "eslint-webpack-plugin": "^3.1.1",
+    "glob-import-loader": "^1.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.4.5",
+    "postcss": "^8.2.15",
+    "postcss-loader": "^3.0.0",
+    "sass": "^1.45.0",
+    "sass-loader": "^12.4.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^0.14.1",
+    "terser-webpack-plugin": "^5.2.5",
+    "ts-loader": "^9.2.6",
+    "tsconfig-paths-webpack-plugin": "^3.2.0",
+    "typescript": "^4.8.2",
+    "webpack": "^5.76.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0",
+    "webpack-merge": "^5.8.0",
+  },
 }
 ```
 
@@ -262,20 +262,20 @@ looking like this:
 {
   "type": "module",
   "scripts": {
-    "dev":  "aem-build --mode dev  --config aem.config.mjs",
+    "dev": "aem-build --mode dev  --config aem.config.mjs",
     "prod": "aem-build --mode prod --config aem.config.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
   },
   "devDependencies": {
     "@aemvite/aem-config": "^0.7.0",
-    "sass":                "^1.77.0",
-    "vite":                "^8.1.0",
-    "vitest":              "^4.1.9"
+    "sass": "^1.77.0",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9",
     // `esbuild` is auto-installed as a peer dep of @aemvite/aem-config
     // (npm 7+ / pnpm 8+). Add it explicitly only on yarn classic.
     // Optional extras (NOT required by @aemvite):
     //   "aemsync": "^5.2.1"   — only if you want aemsync-driven sync/watch
-  }
+  },
 }
 ```
 
@@ -331,10 +331,10 @@ export default defineAemConfig({
     },
     {
       name: 'site',
-      entry: 'src/main/webpack/site/main.ts',     // produces site.js (+ site.css)
+      entry: 'src/main/webpack/site/main.ts', // produces site.js (+ site.css)
       categories: ['<project>.site'],
-      dependencies: ['<project>.dependencies'],   // omitted from XML when empty
-      resources: ['src/main/webpack/resources'],  // copied to resources/
+      dependencies: ['<project>.dependencies'], // omitted from XML when empty
+      resources: ['src/main/webpack/resources'], // copied to resources/
       // Per-clientlib override (optional). Without this block, the mode
       // baseline applies: prod = minify on / sourcemap off.
       build: {
@@ -360,10 +360,10 @@ Old:
 ```jsonc
 {
   "scripts": {
-    "dev":  "webpack --env dev --config ./webpack.dev.js && clientlib --verbose",
+    "dev": "webpack --env dev --config ./webpack.dev.js && clientlib --verbose",
     "prod": "webpack --config ./webpack.prod.js && clientlib --verbose",
-    "start":"webpack-dev-server --open --config ./webpack.dev.js"
-  }
+    "start": "webpack-dev-server --open --config ./webpack.dev.js",
+  },
 }
 ```
 
@@ -372,11 +372,11 @@ New:
 ```jsonc
 {
   "scripts": {
-    "dev":   "aem-build --mode dev  --config aem.config.mjs",
-    "prod":  "aem-build --mode prod --config aem.config.mjs",
-    "start": "vp dev",
-    "test":  "vp test run"
-  }
+    "dev": "aem-build --mode dev  --config aem.config.mjs",
+    "prod": "aem-build --mode prod --config aem.config.mjs",
+    "start": "vite",
+    "test": "vitest run",
+  },
 }
 ```
 
@@ -414,8 +414,8 @@ import './main.scss';
 // Eagerly evaluate every sibling and component module for side-effects.
 // Vite's import.meta.glob replaces webpack's glob-import-loader (JS side).
 // import.meta.glob does not include the calling module itself.
-import.meta.glob('./**/*.js',         { eager: true });
-import.meta.glob('./**/*.ts',         { eager: true });
+import.meta.glob('./**/*.js', { eager: true });
+import.meta.glob('./**/*.ts', { eager: true });
 import.meta.glob('../components/**/*.js', { eager: true });
 ```
 
@@ -427,8 +427,8 @@ them. The archetype's `main.scss` works as-is:
 // src/main/webpack/site/main.scss — unchanged
 @import 'variables';
 @import 'base';
-@import '../components/**/*.scss';   // expanded by @aemvite/vite-plugin-glob
-@import './styles/*.scss';           // expanded too
+@import '../components/**/*.scss'; // expanded by @aemvite/vite-plugin-glob
+@import './styles/*.scss'; // expanded too
 ```
 
 Non-glob `@import 'variables';` is preserved verbatim — Sass resolves it.

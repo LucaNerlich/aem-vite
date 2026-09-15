@@ -14,7 +14,7 @@ packages transitively.
 
 ## Prerequisites
 
-- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by [vite-plus](https://viteplus.dev))
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by [tsdown](https://tsdown.dev), the build tool)
 - **npm** (or pnpm / yarn)
 
 When building via Maven, `frontend-maven-plugin` downloads and caches the
@@ -28,12 +28,12 @@ npm ci
 
 ## Scripts
 
-| Script | What it does |
-|---|---|
-| `npm run dev` | Build all clientlibs in development mode — no minification, inline sourcemaps. |
-| `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps. Output is byte-identical to the golden reference. |
-| `npm start` | Standalone dev-proxy server via `vp dev` (Vite+), proxying `/content` and `/etc.clientlibs` to `localhost:4502`. Optional — not part of the clientlib build. |
-| `npm test` | Run unit tests via vite-plus's bundled Vitest. |
+| Script         | What it does                                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`  | Build all clientlibs in development mode — no minification, inline sourcemaps.                                                                     |
+| `npm run prod` | Build all clientlibs in production mode — esbuild minification (JS + CSS), no sourcemaps. Output is byte-identical to the golden reference.        |
+| `npm start`    | Standalone dev-proxy server via `vite`, proxying `/content` and `/etc.clientlibs` to `localhost:4502`. Optional — not part of the clientlib build. |
+| `npm test`     | Run unit tests via Vitest.                                                                                                                         |
 
 Both `dev` and `prod` call the `aem-build` CLI that ships with
 `@aemvite/aem-config` (installed via `node_modules/.bin/aem-build`). No
@@ -52,10 +52,10 @@ aem.config.mjs
 
 The config defines two clientlibs:
 
-| Clientlib | Type | Output |
-|---|---|---|
-| `clientlib-dependencies` | Descriptor-only (`entry: ''`) | `.content.xml`, `js.txt`, `css.txt` only |
-| `clientlib-site` | JS + CSS + resources | `js/site.js`, `css/site.css`, `resources/` |
+| Clientlib                | Type                          | Output                                     |
+| ------------------------ | ----------------------------- | ------------------------------------------ |
+| `clientlib-dependencies` | Descriptor-only (`entry: ''`) | `.content.xml`, `js.txt`, `css.txt` only   |
+| `clientlib-site`         | JS + CSS + resources          | `js/site.js`, `css/site.css`, `resources/` |
 
 ## Source layout
 

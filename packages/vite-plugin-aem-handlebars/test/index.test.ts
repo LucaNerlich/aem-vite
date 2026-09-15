@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { aemHandlebars } from '../src/index.js';
 
@@ -131,7 +131,10 @@ describe('aemHandlebars — strict precompilation', () => {
   async function materializeModule(code: string): Promise<(data: unknown) => string> {
     const { fileURLToPath } = await import('node:url');
     const here = path.dirname(fileURLToPath(import.meta.url));
-    const file = path.join(here, `.hbs-materialized-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`);
+    const file = path.join(
+      here,
+      `.hbs-materialized-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`,
+    );
     await fs.writeFile(file, code, 'utf8');
     try {
       const mod = (await import(`${new URL(`file://${file}`).href}?t=${Date.now()}`)) as {

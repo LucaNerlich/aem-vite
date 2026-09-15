@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/CHANGELOG.md",
+    "package-lock.json",
+    "packages/vite-plugin-aem-clientlib/test/__golden__/**",
+    "packages/vite-plugin-glob/test/fixtures/**"
+  ]
+}

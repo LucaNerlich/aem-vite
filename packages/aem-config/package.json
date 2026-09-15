@@ -4,34 +4,24 @@
   "description": "Typed config helper, loader, and Vite build orchestrator for AEM clientlib packages.",
   "keywords": [
     "aem",
-    "clientlib",
-    "vite",
-    "config",
-    "edge-delivery",
     "aemvite",
     "build",
-    "orchestrator"
+    "clientlib",
+    "config",
+    "edge-delivery",
+    "orchestrator",
+    "vite"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
     "url": "https://github.com/LucaNerlich/aem-vite/issues"
   },
+  "license": "MIT",
+  "author": "Luca Nerlich",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
     "directory": "packages/aem-config"
-  },
-  "license": "MIT",
-  "author": "Luca Nerlich",
-  "type": "module",
-  "main": "dist/index.mjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.mts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
-    }
   },
   "bin": {
     "aem-build": "dist/cli.mjs"
@@ -42,14 +32,24 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "engines": {
-    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+  "type": "module",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "vp pack src/index.ts src/cli.ts --dts",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "lint": "vp lint",
+    "build": "tsdown src/index.ts src/cli.ts --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint -c ../../.oxlintrc.json .",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -59,17 +59,16 @@
     "@aemvite/vite-plugin-aem-resources": "^0.7.0",
     "@aemvite/vite-plugin-glob": "^0.7.0"
   },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.0"
+  },
   "peerDependencies": {
     "esbuild": "^0.28",
     "vite": "^8"
   },
-  "devDependencies": {
-    "@types/node": "^22.20.0",
-    "typescript": "^5.9.3",
-    "vite": "^8.1.0",
-    "vite-plus": "^0.2.1"
-  },
-  "publishConfig": {
-    "access": "public"
+  "engines": {
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   }
 }

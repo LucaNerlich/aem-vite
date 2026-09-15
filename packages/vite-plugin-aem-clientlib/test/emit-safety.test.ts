@@ -2,7 +2,7 @@ import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, it, expect } from 'vite-plus/test';
+import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 
 import { emitClientlib, isValidClientlibName } from '../src/index.js';
 import type { ClientlibDefinition } from '../src/index.js';

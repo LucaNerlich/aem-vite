@@ -1,132 +1,128 @@
-import { describe, it, expect } from "vite-plus/test";
-import {
-  defaults,
-  defineAemConfig,
-  mergeDefaults,
-} from "../src/index.js";
+import { describe, it, expect } from 'vitest';
+import { defaults, defineAemConfig, mergeDefaults } from '../src/index.js';
 
-describe("mergeDefaults", () => {
-  it("applies built-in defaults to a minimal clientlib", () => {
+describe('mergeDefaults', () => {
+  it('applies built-in defaults to a minimal clientlib', () => {
     const merged = mergeDefaults(
       defineAemConfig({
-        clientLibRoot: "./clientlibs",
+        clientLibRoot: './clientlibs',
         clientlibs: [
           {
-            name: "clientlib-site",
-            entry: "src/main.ts",
-            categories: ["aemvite.site"],
+            name: 'clientlib-site',
+            entry: 'src/main.ts',
+            categories: ['aemvite.site'],
           },
         ],
       }),
     );
 
-    expect(merged.clientLibRoot).toBe("./clientlibs");
+    expect(merged.clientLibRoot).toBe('./clientlibs');
     expect(merged.clientlibs).toHaveLength(1);
     const site = merged.clientlibs[0]!;
-    expect(site.name).toBe("clientlib-site");
+    expect(site.name).toBe('clientlib-site');
     expect(site.allowProxy).toBe(defaults.allowProxy);
     expect(site.serializationFormat).toBe(defaults.serializationFormat);
     expect(site.cssProcessor).toEqual(defaults.cssProcessor);
     expect(site.jsProcessor).toEqual(defaults.jsProcessor);
   });
 
-  it("lets per-clientlib values override built-in defaults", () => {
+  it('lets per-clientlib values override built-in defaults', () => {
     const merged = mergeDefaults({
-      clientLibRoot: "./clientlibs",
+      clientLibRoot: './clientlibs',
       clientlibs: [
         {
-          name: "clientlib-noproxy",
-          entry: "src/x.ts",
-          categories: ["x"],
+          name: 'clientlib-noproxy',
+          entry: 'src/x.ts',
+          categories: ['x'],
           allowProxy: false,
-          cssProcessor: ["min:yui"],
+          cssProcessor: ['min:yui'],
         },
       ],
     });
 
     const lib = merged.clientlibs[0]!;
     expect(lib.allowProxy).toBe(false);
-    expect(lib.cssProcessor).toEqual(["min:yui"]);
+    expect(lib.cssProcessor).toEqual(['min:yui']);
     expect(lib.jsProcessor).toEqual(defaults.jsProcessor);
   });
 
-  it("lets config.defaults override built-in defaults but not per-clientlib values", () => {
+  it('lets config.defaults override built-in defaults but not per-clientlib values', () => {
     const merged = mergeDefaults({
-      clientLibRoot: "./clientlibs",
+      clientLibRoot: './clientlibs',
       defaults: {
         allowProxy: false,
-        cssProcessor: ["min:yui"],
-        jsProcessor: ["min:gcc"],
+        cssProcessor: ['min:yui'],
+        jsProcessor: ['min:gcc'],
       },
       clientlibs: [
-        { name: "a", entry: "a.ts", categories: ["a"] },
+        { name: 'a', entry: 'a.ts', categories: ['a'] },
         {
-          name: "b",
-          entry: "b.ts",
-          categories: ["b"],
+          name: 'b',
+          entry: 'b.ts',
+          categories: ['b'],
           allowProxy: true,
         },
       ],
     });
 
     expect(merged.clientlibs[0]!.allowProxy).toBe(false);
-    expect(merged.clientlibs[0]!.cssProcessor).toEqual(["min:yui"]);
-    expect(merged.clientlibs[0]!.jsProcessor).toEqual(["min:gcc"]);
+    expect(merged.clientlibs[0]!.cssProcessor).toEqual(['min:yui']);
+    expect(merged.clientlibs[0]!.jsProcessor).toEqual(['min:gcc']);
     expect(merged.clientlibs[1]!.allowProxy).toBe(true);
-    expect(merged.clientlibs[1]!.cssProcessor).toEqual(["min:yui"]);
+    expect(merged.clientlibs[1]!.cssProcessor).toEqual(['min:yui']);
   });
 
-  it("preserves user dependencies, embed, and resources arrays", () => {
+  it('preserves user dependencies, embed, and resources arrays', () => {
     const merged = mergeDefaults({
-      clientLibRoot: "./clientlibs",
+      clientLibRoot: './clientlibs',
       clientlibs: [
         {
-          name: "clientlib-site",
-          entry: "src/main.ts",
-          categories: ["aemvite.site"],
-          dependencies: ["aemvite.dependencies"],
-          embed: ["aemvite.shared"],
-          resources: ["src/resources"],
+          name: 'clientlib-site',
+          entry: 'src/main.ts',
+          categories: ['aemvite.site'],
+          dependencies: ['aemvite.dependencies'],
+          embed: ['aemvite.shared'],
+          resources: ['src/resources'],
         },
       ],
     });
 
     const lib = merged.clientlibs[0]!;
-    expect(lib.dependencies).toEqual(["aemvite.dependencies"]);
-    expect(lib.embed).toEqual(["aemvite.shared"]);
-    expect(lib.resources).toEqual(["src/resources"]);
+    expect(lib.dependencies).toEqual(['aemvite.dependencies']);
+    expect(lib.embed).toEqual(['aemvite.shared']);
+    expect(lib.resources).toEqual(['src/resources']);
   });
 
-  it("carries global plugins/vite and per-clientlib plugins through", () => {
-    const globalPlugin = { name: "global" };
-    const sitePlugin = { name: "site" };
+  it('carries global plugins/vite and per-clientlib plugins through', () => {
+    const globalPlugin = { name: 'global' };
+    const sitePlugin = { name: 'site' };
     const merged = mergeDefaults({
-      clientLibRoot: "./clientlibs",
+      clientLibRoot: './clientlibs',
       plugins: [globalPlugin],
-      vite: { logLevel: "silent" },
+      vite: { logLevel: 'silent' },
       clientlibs: [
         {
-          name: "site",
-          entry: "src/main.ts",
-          categories: ["aemvite.site"],
+          name: 'site',
+          entry: 'src/main.ts',
+          categories: ['aemvite.site'],
           plugins: [sitePlugin],
         },
       ],
     });
 
     expect(merged.plugins).toEqual([globalPlugin]);
-    expect(merged.vite).toEqual({ logLevel: "silent" });
+    expect(merged.vite).toEqual({ logLevel: 'silent' });
     expect(merged.clientlibs[0]!.plugins).toEqual([sitePlugin]);
   });
 
-  it("does not mutate the input config", () => {
+  it('does not mutate the input config', () => {
     const config = defineAemConfig({
-      clientLibRoot: "./clientlibs",
+      clientLibRoot: './clientlibs',
       clientlibs: [
         {
-          name: "clientlib-site",
-          entry: "src/main.ts",
-          categories: ["aemvite.site"],
+          name: 'clientlib-site',
+          entry: 'src/main.ts',
+          categories: ['aemvite.site'],
         },
       ],
     });
@@ -136,14 +132,14 @@ describe("mergeDefaults", () => {
   });
 });
 
-describe("mergeDefaults (validation and isolation)", () => {
-  it("resolved clientlibs do not share the exported defaults arrays", () => {
+describe('mergeDefaults (validation and isolation)', () => {
+  it('resolved clientlibs do not share the exported defaults arrays', () => {
     const merged = mergeDefaults(
       defineAemConfig({
-        clientLibRoot: "./clientlibs",
+        clientLibRoot: './clientlibs',
         clientlibs: [
-          { name: "a", entry: "a.ts", categories: ["a"] },
-          { name: "b", entry: "b.ts", categories: ["b"] },
+          { name: 'a', entry: 'a.ts', categories: ['a'] },
+          { name: 'b', entry: 'b.ts', categories: ['b'] },
         ],
       }),
     );
@@ -153,33 +149,33 @@ describe("mergeDefaults (validation and isolation)", () => {
     expect(merged.clientlibs[1]!.cssProcessor).not.toBe(defaults.cssProcessor);
   });
 
-  it("rejects clientlib names that could escape the output directory", () => {
-    for (const name of ["../../evil", "a/b", "..", ".", ""]) {
+  it('rejects clientlib names that could escape the output directory', () => {
+    for (const name of ['../../evil', 'a/b', '..', '.', '']) {
       expect(() =>
         mergeDefaults({
-          clientLibRoot: "./clientlibs",
-          clientlibs: [{ name, entry: "a.ts", categories: ["a"] }],
+          clientLibRoot: './clientlibs',
+          clientlibs: [{ name, entry: 'a.ts', categories: ['a'] }],
         }),
       ).toThrow(/name/);
     }
   });
 
-  it("rejects duplicate clientlib names", () => {
+  it('rejects duplicate clientlib names', () => {
     expect(() =>
       mergeDefaults({
-        clientLibRoot: "./clientlibs",
+        clientLibRoot: './clientlibs',
         clientlibs: [
-          { name: "site", entry: "a.ts", categories: ["a"] },
-          { name: "site", entry: "b.ts", categories: ["b"] },
+          { name: 'site', entry: 'a.ts', categories: ['a'] },
+          { name: 'site', entry: 'b.ts', categories: ['b'] },
         ],
       }),
     ).toThrow(/Duplicate clientlib name/);
   });
 
-  it("rejects non-object clientlib entries", () => {
+  it('rejects non-object clientlib entries', () => {
     expect(() =>
       mergeDefaults({
-        clientLibRoot: "./clientlibs",
+        clientLibRoot: './clientlibs',
         clientlibs: [null as unknown as never],
       }),
     ).toThrow(/Invalid clientlib entry/);

@@ -27,14 +27,14 @@ exactly the same files — only the build that produces them changes.
 Each package name links to its npm page; the source for every package lives
 under [`packages/`](./packages) in this repo.
 
-| Package | Replaces | Responsibility |
-|---|---|---|
-| [`@aemvite/aem-config`](https://www.npmjs.com/package/@aemvite/aem-config) ([src](./packages/aem-config)) | Split webpack entries + `clientlib.config.js` | Typed config helper (`defineAemConfig`), loader, per-clientlib build-options resolver, and the `aem-build` CLI orchestrator. |
-| [`@aemvite/vite-plugin-aem-clientlib`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib) ([src](./packages/vite-plugin-aem-clientlib)) | `aem-clientlib-generator` | Emits AEM clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) **byte-for-byte** against a captured golden reference, plus the `js/` / `css/` / `resources/` layout. |
-| [`@aemvite/vite-plugin-glob`](https://www.npmjs.com/package/@aemvite/vite-plugin-glob) ([src](./packages/vite-plugin-glob)) | `glob-import-loader` (styles) | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering. |
-| [`@aemvite/vite-plugin-aem-resources`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources) ([src](./packages/vite-plugin-aem-resources)) | `copy-webpack-plugin` | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize. |
-| [`@aemvite/vite-plugin-aem-css-url-passthrough`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough) ([src](./packages/vite-plugin-aem-css-url-passthrough)) | `css-loader: { url: false }` | Rewrites `url(...)` in emitted clientlib CSS back to the canonical `../resources/<sub>/<file>` form so SCSS-authored asset references resolve against the deployed AEM clientlib. Opt-in via `cssUrlPassthrough` on `defineAemConfig`. |
-| [`@aemvite/vite-plugin-aem-handlebars`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-handlebars) ([src](./packages/vite-plugin-aem-handlebars)) | `handlebars-loader` + Storybook stubs | Precompiles `.template.hbs` files via `handlebars/runtime` and stubs out Storybook stories / non-template `.hbs` partials so they do not ship in the clientlib bundle. Opt-in via `handlebars` on `defineAemConfig` (global or per-clientlib). |
+| Package                                                                                                                                                                              | Replaces                                      | Responsibility                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@aemvite/aem-config`](https://www.npmjs.com/package/@aemvite/aem-config) ([src](./packages/aem-config))                                                                            | Split webpack entries + `clientlib.config.js` | Typed config helper (`defineAemConfig`), loader, per-clientlib build-options resolver, and the `aem-build` CLI orchestrator.                                                                                                                   |
+| [`@aemvite/vite-plugin-aem-clientlib`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-clientlib) ([src](./packages/vite-plugin-aem-clientlib))                               | `aem-clientlib-generator`                     | Emits AEM clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) **byte-for-byte** against a captured golden reference, plus the `js/` / `css/` / `resources/` layout.                                                                    |
+| [`@aemvite/vite-plugin-glob`](https://www.npmjs.com/package/@aemvite/vite-plugin-glob) ([src](./packages/vite-plugin-glob))                                                          | `glob-import-loader` (styles)                 | Expands `@import` / `@use` / `@forward` glob specifiers in `.scss`, `.sass`, and `.css` files with deterministic ordering.                                                                                                                     |
+| [`@aemvite/vite-plugin-aem-resources`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-resources) ([src](./packages/vite-plugin-aem-resources))                               | `copy-webpack-plugin`                         | Copies a clientlib `resources/` tree into the build output. No-ops on `.gitkeep`-only / empty source trees so they never materialize.                                                                                                          |
+| [`@aemvite/vite-plugin-aem-css-url-passthrough`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-css-url-passthrough) ([src](./packages/vite-plugin-aem-css-url-passthrough)) | `css-loader: { url: false }`                  | Rewrites `url(...)` in emitted clientlib CSS back to the canonical `../resources/<sub>/<file>` form so SCSS-authored asset references resolve against the deployed AEM clientlib. Opt-in via `cssUrlPassthrough` on `defineAemConfig`.         |
+| [`@aemvite/vite-plugin-aem-handlebars`](https://www.npmjs.com/package/@aemvite/vite-plugin-aem-handlebars) ([src](./packages/vite-plugin-aem-handlebars))                            | `handlebars-loader` + Storybook stubs         | Precompiles `.template.hbs` files via `handlebars/runtime` and stubs out Storybook stories / non-template `.hbs` partials so they do not ship in the clientlib bundle. Opt-in via `handlebars` on `defineAemConfig` (global or per-clientlib). |
 
 ## How they fit together
 
@@ -88,7 +88,7 @@ start`), wire `aemViteGlob()` into your `vite.config.*` plugins array too.
 descriptors **byte-for-byte**:
 
 - Namespaces and attribute order locked: `categories → dependencies →
-  cssProcessor → jsProcessor → allowProxy`.
+cssProcessor → jsProcessor → allowProxy`.
 - `dependencies` is omitted entirely when empty.
 - `js.txt` / `css.txt` use the `#base=<bucket>\n\n<file>\n…` format with no
   trailing newline.
@@ -109,16 +109,16 @@ has zero webpack/Babel/PostCSS dependencies. Its `aem.config.mjs`,
 A minimal `aem.config.ts` looks like:
 
 ```ts
-import { defineAemConfig } from "@aemvite/aem-config";
+import { defineAemConfig } from '@aemvite/aem-config';
 
 export default defineAemConfig({
-  clientLibRoot: "../ui.apps/src/main/content/jcr_root/apps/<project>/clientlibs",
+  clientLibRoot: '../ui.apps/src/main/content/jcr_root/apps/<project>/clientlibs',
   clientlibs: [
     {
-      name: "site",
-      entry: "src/main.ts",
-      categories: ["myproject.site"],
-      dependencies: ["myproject.dependencies"],
+      name: 'site',
+      entry: 'src/main.ts',
+      categories: ['myproject.site'],
+      dependencies: ['myproject.dependencies'],
     },
   ],
 });
@@ -139,7 +139,7 @@ examples.
 
 ## Requirements
 
-- **Node.js:** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by vite-plus)
+- **Node.js:** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by tsdown, the build tool)
 - **Vite:** `^8` (peer dependency on the plugin packages)
 - **Sass:** required only when consuming `.scss`/`.sass` sources (`sass` /
   `sass-embedded`); not declared as a peer because plain CSS works without it.
@@ -159,7 +159,7 @@ build that produces byte-identical clientlib descriptors.
 Before you start, confirm your project matches the assumptions baked into the
 toolchain:
 
-- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by vite-plus). Older Node
+- **Node.js** `^20.19.0 || ^22.18.0 || >=24.11.0` (required by tsdown, the build tool). Older Node
   releases will fail at `npm install` of `vite@^8`.
 - **npm** (Yarn / pnpm work too, but the reference uses npm because that is
   what `frontend-maven-plugin` invokes by default).
@@ -205,12 +205,12 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
   "type": "module",
   "devDependencies": {
     "@aemvite/aem-config": "^0.7.0", // pulls the five plugin packages + esbuild peer
-    "sass":    "^1.77.0",
-    "vite":    "^8.1.0",
-    "vitest":  "^4.1.9"
+    "sass": "^1.77.0",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9",
     // add "aemsync" here too if you keep the sync/watch loop
     // add "esbuild" only on yarn classic (other PMs auto-install the peer)
-  }
+  },
 }
 ```
 
@@ -273,7 +273,7 @@ export default defineAemConfig({
     },
     {
       name: 'site',
-      entry: 'src/main/webpack/site/main.ts',   // produces site.js (+ site.css)
+      entry: 'src/main/webpack/site/main.ts', // produces site.js (+ site.css)
       categories: ['<project>.site'],
       dependencies: ['<project>.dependencies'], // omitted from XML when empty
       // embed: ['<project>.shared'],            // optional
@@ -281,7 +281,7 @@ export default defineAemConfig({
       // Per-clientlib build overrides win over the global `build` block.
       build: {
         minify: { js: true, css: true }, // fine-grained per asset
-        sourcemap: false,                // false | true | "inline" | "hidden"
+        sourcemap: false, // false | true | "inline" | "hidden"
         // target: 'es2018',
       },
     },
@@ -294,10 +294,10 @@ per-clientlib `build`** — so you can keep the project default while opting a
 single clientlib into a different minify or sourcemap policy. The mode
 baselines (with no overrides) are:
 
-| Mode | JS minify | CSS minify | sourcemap | target |
-|---|---|---|---|---|
-| `development` | off | off | `"inline"` | `"es2015"` |
-| `production`  | on (esbuild) | on (esbuild) | off | `"es2015"` |
+| Mode          | JS minify    | CSS minify   | sourcemap  | target     |
+| ------------- | ------------ | ------------ | ---------- | ---------- |
+| `development` | off          | off          | `"inline"` | `"es2015"` |
+| `production`  | on (esbuild) | on (esbuild) | off        | `"es2015"` |
 
 Field reference for every supported option lives in the
 [`@aemvite/aem-config` README](./packages/aem-config#config-shape).
@@ -352,7 +352,7 @@ is enough):
 1. **AEM's clientlib aggregator** concatenates everything in `js/` (and
    `css/`) into the single served bundle response. A `.map` placed in `js/`
    ends up as JSON spliced into the middle of your JavaScript — Chrome
-   rejects it with *"sourcemap skipped"*.
+   rejects it with _"sourcemap skipped"_.
 2. **Sling URL decomposition.** `clientlib-<name>.js.map` requested at the
    proxy root resolves as `selectors=[js], extension=map` → 404. Nesting
    under `resources/sourcemaps/` produces an unambiguous resource path that
@@ -415,13 +415,13 @@ In `ui.frontend/package.json`:
 ```jsonc
 {
   "scripts": {
-    "dev":   "aem-build --mode dev --config aem.config.mjs",
-    "prod":  "aem-build --mode prod --config aem.config.mjs",
-    "start": "vp dev",                       // Vite+ dev server (optional)
-    "sync":  "aemsync -d -p ../ui.apps/src/main/content",
+    "dev": "aem-build --mode dev --config aem.config.mjs",
+    "prod": "aem-build --mode prod --config aem.config.mjs",
+    "start": "vite", // Vite dev server (optional)
+    "sync": "aemsync -d -p ../ui.apps/src/main/content",
     "watch": "aemsync -w ../ui.apps/src/main/content",
-    "test":  "vp test run"
-  }
+    "test": "vitest run",
+  },
 }
 ```
 
@@ -464,8 +464,8 @@ import './main.scss';
 
 // Eagerly evaluate every sibling and component module for side-effects.
 // import.meta.glob does not include the calling module itself.
-import.meta.glob('./**/*.js',         { eager: true });
-import.meta.glob('./**/*.ts',         { eager: true });
+import.meta.glob('./**/*.js', { eager: true });
+import.meta.glob('./**/*.ts', { eager: true });
 import.meta.glob('../components/**/*.js', { eager: true });
 ```
 
@@ -477,8 +477,8 @@ Authoring stays unchanged:
 /* main.scss */
 @import 'variables';
 @import 'base';
-@import '../components/**/*.scss';   // ← expanded by @aemvite/vite-plugin-glob
-@import './styles/*.scss';           // ← expanded too
+@import '../components/**/*.scss'; // ← expanded by @aemvite/vite-plugin-glob
+@import './styles/*.scss'; // ← expanded too
 ```
 
 The `vite-plugin-glob` plugin only needs to be active during the per-entry
@@ -496,7 +496,7 @@ export default defineConfig({
   plugins: [aemViteGlob()],
   server: {
     proxy: {
-      '/content':       'http://localhost:4502',
+      '/content': 'http://localhost:4502',
       '/etc.clientlibs': 'http://localhost:4502',
     },
   },
@@ -527,15 +527,15 @@ reference conversion, **every one** of these `ui.frontend` devDependencies
 and config files was removed (and replaced by Vite, esbuild, Sass, and the
 four `@aemvite/*` packages):
 
-| Category | Removed |
-|---|---|
-| Webpack core | `webpack`, `webpack-cli`, `webpack-dev-server`, `webpack-merge` |
-| Babel | every `@babel/*` |
-| **ESLint** | `eslint`, `eslint-webpack-plugin`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` |
-| Clientlib generation | `aem-clientlib-generator`, `glob-import-loader` |
-| Loaders | `ts-loader`, `tsconfig-paths-webpack-plugin`, `style-loader`, `css-loader`, `mini-css-extract-plugin`, `sass-loader`, `source-map-loader`, `copy-webpack-plugin`, `clean-webpack-plugin`, `terser-webpack-plugin`, `css-minimizer-webpack-plugin` |
-| PostCSS | `postcss`, `postcss-loader`, `autoprefixer`, `cssnano` |
-| Misc | `html-webpack-plugin`, `chokidar-cli`, `acorn` |
+| Category             | Removed                                                                                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Webpack core         | `webpack`, `webpack-cli`, `webpack-dev-server`, `webpack-merge`                                                                                                                                                                                   |
+| Babel                | every `@babel/*`                                                                                                                                                                                                                                  |
+| **ESLint**           | `eslint`, `eslint-webpack-plugin`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`                                                                                                                                                |
+| Clientlib generation | `aem-clientlib-generator`, `glob-import-loader`                                                                                                                                                                                                   |
+| Loaders              | `ts-loader`, `tsconfig-paths-webpack-plugin`, `style-loader`, `css-loader`, `mini-css-extract-plugin`, `sass-loader`, `source-map-loader`, `copy-webpack-plugin`, `clean-webpack-plugin`, `terser-webpack-plugin`, `css-minimizer-webpack-plugin` |
+| PostCSS              | `postcss`, `postcss-loader`, `autoprefixer`, `cssnano`                                                                                                                                                                                            |
+| Misc                 | `html-webpack-plugin`, `chokidar-cli`, `acorn`                                                                                                                                                                                                    |
 
 Concrete delete checklist:
 
@@ -662,19 +662,18 @@ for every exposed API:
   `handlebars: true | {…}` flag on `defineAemConfig` (global +
   per-clientlib), and the Storybook / non-template `.hbs` stub behavior.
 
-
 ## Status & scope
 
 - **`@aemvite/aem-config`**: `0.7.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
 - **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.7.0`.
-- Toolchain migrated to [Vite+](https://viteplus.dev): all six packages build with `vp pack` (tsdown/Rolldown) and test with vite-plus's bundled Vitest; `vite` itself stays a direct dependency where the packages need its programmatic Node API or types (vite-plus doesn't re-export those).
+- Toolchain is plain npm + Vite: all six packages build with [`tsdown`](https://tsdown.dev) (Rolldown) and test with [Vitest](https://vitest.dev); `vite` itself stays a direct dependency where the packages need its programmatic Node API or types.
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —
   `npm run prod` and `npm run dev` both produce identical clientlib output
   vs. the captured golden.
-- Build-time linting is now in place (Oxlint via `vp lint`, conservative default ruleset).
+- Build-time linting is via [Oxlint](https://oxc.rs/docs/guide/usage/linter) (type-aware, conservative default ruleset), formatting via [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).
 - Out of scope this round: SCSS-to-CSS source migration, byte-level parity of
-  minified JS/CSS *content* (only descriptors and folder structure are
+  minified JS/CSS _content_ (only descriptors and folder structure are
   byte-identical).
 
 ## Publishing to npm

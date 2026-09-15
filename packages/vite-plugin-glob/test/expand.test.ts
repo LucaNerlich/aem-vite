@@ -1,11 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vite-plus/test';
-import {
-  expandStyleGlobs,
-  expandStyleGlobsWithResult,
-  hasGlobMagic,
-} from '../src/expand.js';
+import { describe, expect, it } from 'vitest';
+import { expandStyleGlobs, expandStyleGlobsWithResult, hasGlobMagic } from '../src/expand.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCSS_DIR = path.join(__dirname, 'fixtures', 'scss');
@@ -67,8 +63,8 @@ describe('expandStyleGlobs — SCSS', () => {
 `;
     const out = expandStyleGlobs(source, SCSS_ENTRY);
     expect(out).toContain(`background: url('../images/*.png')`);
-    expect(out).toContain('@import \'./styles/footer.scss\';');
-    expect(out).toContain('@import \'./styles/header.scss\';');
+    expect(out).toContain("@import './styles/footer.scss';");
+    expect(out).toContain("@import './styles/header.scss';");
   });
 
   it('leaves the original statement when the glob matches nothing', () => {
@@ -80,8 +76,7 @@ describe('expandStyleGlobs — SCSS', () => {
 describe('expandStyleGlobs — plain CSS', () => {
   it('expands a glob @import in plain CSS', () => {
     const source = `@import './parts/*.css';\n`;
-    const expected =
-      `@import './parts/_one.css';\n@import './parts/_two.css';\n`;
+    const expected = `@import './parts/_one.css';\n@import './parts/_two.css';\n`;
     expect(expandStyleGlobs(source, CSS_ENTRY)).toBe(expected);
   });
 

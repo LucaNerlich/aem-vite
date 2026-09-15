@@ -4,25 +4,31 @@
   "description": "Vite plugin and descriptor emitter for AEM clientlibs — byte-identical .content.xml, js.txt, css.txt.",
   "keywords": [
     "aem",
+    "aem-clientlib-generator",
+    "aemvite",
     "clientlib",
-    "vite",
-    "vite-plugin",
     "descriptor",
     "edge-delivery",
-    "aemvite",
-    "aem-clientlib-generator"
+    "vite",
+    "vite-plugin"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
     "url": "https://github.com/LucaNerlich/aem-vite/issues"
   },
+  "license": "MIT",
+  "author": "Luca Nerlich",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
     "directory": "packages/vite-plugin-aem-clientlib"
   },
-  "license": "MIT",
-  "author": "Luca Nerlich",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -32,29 +38,22 @@
       "import": "./dist/index.mjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "engines": {
-    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "vp pack src/index.ts --dts",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "lint": "vp lint",
+    "build": "tsdown src/index.ts --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint -c ../../.oxlintrc.json .",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "typescript": "^5.9.3",
-    "vite": "^8.1.0",
-    "vite-plus": "^0.2.1"
+    "vite": "^8.1.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "engines": {
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   }
 }

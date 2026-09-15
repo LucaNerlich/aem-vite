@@ -2,7 +2,7 @@ import { readFile, mkdtemp, readdir, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect, beforeAll } from 'vite-plus/test';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 import {
   classifyFile,
@@ -219,9 +219,6 @@ describe('emitClientlib (file layout)', () => {
     // EmitResult should expose only the txt-listed code files (no maps).
     expect(result.jsFiles).toEqual(['site.js']);
     expect(result.cssFiles).toEqual(['site.css']);
-    expect(result.resourceFiles).toEqual([
-      'sourcemaps/site.js.map',
-      'sourcemaps/site.css.map',
-    ]);
+    expect(result.resourceFiles).toEqual(['sourcemaps/site.js.map', 'sourcemaps/site.css.map']);
   });
 });

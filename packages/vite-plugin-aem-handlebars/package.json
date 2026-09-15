@@ -4,27 +4,33 @@
   "description": "Vite plugin that precompiles `.template.hbs` files into Handlebars runtime functions and stubs Storybook/non-template `.hbs` partials, mirroring webpack handlebars-loader + IgnorePlugin for AEM clientlib builds.",
   "keywords": [
     "aem",
+    "aemvite",
     "clientlib",
-    "vite",
-    "vite-plugin",
     "handlebars",
     "handlebars-loader",
     "precompile",
-    "templates",
     "storybook",
-    "aemvite"
+    "templates",
+    "vite",
+    "vite-plugin"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
     "url": "https://github.com/LucaNerlich/aem-vite/issues"
   },
+  "license": "MIT",
+  "author": "Luca Nerlich",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
     "directory": "packages/vite-plugin-aem-handlebars"
   },
-  "license": "MIT",
-  "author": "Luca Nerlich",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -34,34 +40,27 @@
       "import": "./dist/index.mjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "engines": {
-    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "vp pack src/index.ts --dts",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "lint": "vp lint",
+    "build": "tsdown src/index.ts --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint -c ../../.oxlintrc.json .",
     "prepublishOnly": "npm run build"
-  },
-  "peerDependencies": {
-    "handlebars": "^4.7",
-    "vite": "^8"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "handlebars": "^4.7.8",
     "typescript": "^5.9.3",
-    "vite": "^8.1.0",
-    "vite-plus": "^0.2.1"
+    "vite": "^8.1.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "peerDependencies": {
+    "handlebars": "^4.7",
+    "vite": "^8"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   }
 }

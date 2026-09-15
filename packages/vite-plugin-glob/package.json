@@ -4,26 +4,32 @@
   "description": "Vite plugin that expands glob specifiers inside .scss and .css files (replacement for glob-import-loader).",
   "keywords": [
     "aem",
-    "vite",
-    "vite-plugin",
+    "aemvite",
+    "clientlib",
+    "css",
+    "edge-delivery",
     "glob",
     "scss",
-    "css",
-    "clientlib",
-    "edge-delivery",
-    "aemvite"
+    "vite",
+    "vite-plugin"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
     "url": "https://github.com/LucaNerlich/aem-vite/issues"
   },
+  "license": "MIT",
+  "author": "Luca Nerlich",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
     "directory": "packages/vite-plugin-glob"
   },
-  "license": "MIT",
-  "author": "Luca Nerlich",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -37,35 +43,28 @@
       "default": "./dist/expand.mjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "engines": {
-    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "vp pack src/index.ts src/expand.ts --dts",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "lint": "vp lint",
+    "build": "tsdown src/index.ts src/expand.ts --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint -c ../../.oxlintrc.json .",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "tinyglobby": "^0.2.17"
   },
-  "peerDependencies": {
-    "vite": "^8"
-  },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "typescript": "^5.9.3",
-    "vite": "^8.1.0",
-    "vite-plus": "^0.2.1"
+    "vite": "^8.1.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "peerDependencies": {
+    "vite": "^8"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   }
 }

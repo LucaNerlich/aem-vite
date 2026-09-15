@@ -1,14 +1,11 @@
 import { promises as fs } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { aemResources } from '../src/index.js';
 
-type ConfigResolvedHook = (config: {
-  root: string;
-  build: { outDir: string };
-}) => void;
+type ConfigResolvedHook = (config: { root: string; build: { outDir: string } }) => void;
 type CloseBundleHook = () => Promise<void> | void;
 
 let tmpRoot: string;
@@ -35,7 +32,11 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
-async function runPlugin(plugin: ReturnType<typeof aemResources>, root: string, outDir: string): Promise<void> {
+async function runPlugin(
+  plugin: ReturnType<typeof aemResources>,
+  root: string,
+  outDir: string,
+): Promise<void> {
   const cfgHook = plugin.configResolved as ConfigResolvedHook;
   const closeHook = plugin.closeBundle as CloseBundleHook;
   cfgHook({ root, build: { outDir } });
@@ -60,7 +61,9 @@ describe('aemResources', () => {
     expect(await exists(dest)).toBe(true);
     expect(await fs.readFile(path.join(dest, 'fonts', 'site.woff2'), 'utf8')).toBe('FONT-BYTES');
     expect(await fs.readFile(path.join(dest, 'images', 'logo.svg'), 'utf8')).toBe('<svg/>');
-    expect(await fs.readFile(path.join(dest, 'images', 'icons', 'star.svg'), 'utf8')).toBe('<svg id="star"/>');
+    expect(await fs.readFile(path.join(dest, 'images', 'icons', 'star.svg'), 'utf8')).toBe(
+      '<svg id="star"/>',
+    );
     expect(await fs.readFile(path.join(dest, 'top-level.txt'), 'utf8')).toBe('hello');
 
     const topEntries = (await fs.readdir(dest)).sort();

@@ -4,27 +4,33 @@
   "description": "Vite plugin that rewrites CSS url() references in built clientlib stylesheets back to ../resources/<sub>/<file> form, mirroring webpack css-loader { url: false } for AEM clientlibs.",
   "keywords": [
     "aem",
+    "aemvite",
     "clientlib",
-    "vite",
-    "vite-plugin",
     "css",
-    "url",
     "css-loader",
-    "resources",
     "edge-delivery",
-    "aemvite"
+    "resources",
+    "url",
+    "vite",
+    "vite-plugin"
   ],
   "homepage": "https://github.com/LucaNerlich/aem-vite#readme",
   "bugs": {
     "url": "https://github.com/LucaNerlich/aem-vite/issues"
   },
+  "license": "MIT",
+  "author": "Luca Nerlich",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LucaNerlich/aem-vite.git",
     "directory": "packages/vite-plugin-aem-css-url-passthrough"
   },
-  "license": "MIT",
-  "author": "Luca Nerlich",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -34,32 +40,25 @@
       "import": "./dist/index.mjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "engines": {
-    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "vp pack src/index.ts --dts",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "lint": "vp lint",
+    "build": "tsdown src/index.ts --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint -c ../../.oxlintrc.json .",
     "prepublishOnly": "npm run build"
-  },
-  "peerDependencies": {
-    "vite": "^8"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "typescript": "^5.9.3",
-    "vite": "^8.1.0",
-    "vite-plus": "^0.2.1"
+    "vite": "^8.1.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "peerDependencies": {
+    "vite": "^8"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.18.0 || >=24.11.0"
   }
 }
