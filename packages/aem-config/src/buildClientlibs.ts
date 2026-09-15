@@ -1,16 +1,16 @@
-import path from "node:path";
-import { realpathSync } from "node:fs";
-import { readdir, readFile, rm, writeFile } from "node:fs/promises";
-import type { InlineConfig } from "vite";
-import { loadAemConfig } from "./loadAemConfig.js";
-import { resolveBuildOptions } from "./resolveBuildOptions.js";
+import path from 'node:path';
+import { realpathSync } from 'node:fs';
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import type { InlineConfig } from 'vite';
+import { loadAemConfig } from './loadAemConfig.js';
+import { resolveBuildOptions } from './resolveBuildOptions.js';
 import type {
   BuildClientlibsOptions,
   CssUrlPassthroughOption,
   HandlebarsOption,
   ResolvedAemClientlib,
   ResolvedAemConfig,
-} from "./types.js";
+} from './types.js';
 
 interface StagedFile {
   source: string;
@@ -43,7 +43,7 @@ export async function buildClientlibs(
 ): Promise<{ config: ResolvedAemConfig; outDir: string }> {
   const { mode, configPath } = options;
   const configDir = path.dirname(path.resolve(configPath));
-  const outDir = path.resolve(configDir, options.outDir ?? "dist");
+  const outDir = path.resolve(configDir, options.outDir ?? 'dist');
   assertSafeOutDir(outDir, configDir);
 
   const config = await loadAemConfig(configPath, { mode });
@@ -53,19 +53,18 @@ export async function buildClientlibs(
   // (or the global config) opts in. This keeps `handlebars` an optional
   // peer dep: projects that don't use it never need to install it.
   const handlebarsNeeded = config.clientlibs.some(
-    (c) => (c.handlebars ?? config.handlebars) !== undefined && (c.handlebars ?? config.handlebars) !== false,
+    (c) =>
+      (c.handlebars ?? config.handlebars) !== undefined &&
+      (c.handlebars ?? config.handlebars) !== false,
   );
-  const [vite, glob, resources, cssUrl, clientlibPkg, handlebarsPkg] =
-    await Promise.all([
-      import("vite"),
-      import("@aemvite/vite-plugin-glob"),
-      import("@aemvite/vite-plugin-aem-resources"),
-      import("@aemvite/vite-plugin-aem-css-url-passthrough"),
-      import("@aemvite/vite-plugin-aem-clientlib"),
-      handlebarsNeeded
-        ? import("@aemvite/vite-plugin-aem-handlebars")
-        : Promise.resolve(undefined),
-    ]);
+  const [vite, glob, resources, cssUrl, clientlibPkg, handlebarsPkg] = await Promise.all([
+    import('vite'),
+    import('@aemvite/vite-plugin-glob'),
+    import('@aemvite/vite-plugin-aem-resources'),
+    import('@aemvite/vite-plugin-aem-css-url-passthrough'),
+    import('@aemvite/vite-plugin-aem-clientlib'),
+    handlebarsNeeded ? import('@aemvite/vite-plugin-aem-handlebars') : Promise.resolve(undefined),
+  ]);
   const { build: viteBuild, mergeConfig } = vite;
   const { aemViteGlob } = glob;
   const { aemResources } = resources;
@@ -118,10 +117,7 @@ export async function buildClientlibs(
 function assertSafeOutDir(outDir: string, configDir: string): void {
   const rel = path.relative(outDir, configDir);
   const containsConfig =
-    rel === "" ||
-    (!rel.startsWith(`..${path.sep}`) &&
-      rel !== ".." &&
-      !path.isAbsolute(rel));
+    rel === '' || (!rel.startsWith(`..${path.sep}`) && rel !== '..' && !path.isAbsolute(rel));
   if (containsConfig) {
     throw new Error(
       `Refusing to build: outDir ${outDir} contains the AEM config at ` +
@@ -135,10 +131,7 @@ function assertSafeOutDir(outDir: string, configDir: string): void {
  * Remove `clientlib-*` folders in `clientLibRoot` that are not in `names`.
  * Only directories matching the `clientlib-` prefix are considered.
  */
-async function removeStaleClientlibs(
-  clientLibRoot: string,
-  names: string[],
-): Promise<void> {
+async function removeStaleClientlibs(clientLibRoot: string, names: string[]): Promise<void> {
   let entries;
   try {
     entries = await readdir(clientLibRoot, { withFileTypes: true });
@@ -147,7 +140,7 @@ async function removeStaleClientlibs(
   }
   const keep = new Set(names);
   for (const entry of entries) {
-    if (!entry.isDirectory() || !entry.name.startsWith("clientlib-")) continue;
+    if (!entry.isDirectory() || !entry.name.startsWith('clientlib-')) continue;
     if (keep.has(entry.name)) continue;
     await rm(path.join(clientLibRoot, entry.name), {
       recursive: true,
@@ -157,14 +150,11 @@ async function removeStaleClientlibs(
 }
 
 type ViteHelpers = {
-  aemViteGlob: typeof import("@aemvite/vite-plugin-glob").aemViteGlob;
-  aemResources: typeof import("@aemvite/vite-plugin-aem-resources").aemResources;
-  aemCssUrlPassthrough:
-    typeof import("@aemvite/vite-plugin-aem-css-url-passthrough").aemCssUrlPassthrough;
-  aemHandlebars:
-    | typeof import("@aemvite/vite-plugin-aem-handlebars").aemHandlebars
-    | undefined;
-  mergeConfig: typeof import("vite").mergeConfig;
+  aemViteGlob: typeof import('@aemvite/vite-plugin-glob').aemViteGlob;
+  aemResources: typeof import('@aemvite/vite-plugin-aem-resources').aemResources;
+  aemCssUrlPassthrough: typeof import('@aemvite/vite-plugin-aem-css-url-passthrough').aemCssUrlPassthrough;
+  aemHandlebars: typeof import('@aemvite/vite-plugin-aem-handlebars').aemHandlebars | undefined;
+  mergeConfig: typeof import('vite').mergeConfig;
 };
 
 function buildInlineConfig(
@@ -172,14 +162,8 @@ function buildInlineConfig(
   config: ResolvedAemConfig,
   configDir: string,
   stagingDir: string,
-  mode: BuildClientlibsOptions["mode"],
-  {
-    aemViteGlob,
-    aemResources,
-    aemCssUrlPassthrough,
-    aemHandlebars,
-    mergeConfig,
-  }: ViteHelpers,
+  mode: BuildClientlibsOptions['mode'],
+  { aemViteGlob, aemResources, aemCssUrlPassthrough, aemHandlebars, mergeConfig }: ViteHelpers,
 ): InlineConfig {
   const entry = path.resolve(configDir, clientlib.entry);
   const resolved = resolveBuildOptions(mode, config.build, clientlib.build);
@@ -212,7 +196,7 @@ function buildInlineConfig(
     configFile: false,
     root: configDir,
     mode,
-    logLevel: "warn",
+    logLevel: 'warn',
     plugins: [
       aemViteGlob(),
       ...(resourceEntries.length ? [aemResources(resourceEntries)] : []),
@@ -224,8 +208,8 @@ function buildInlineConfig(
     build: {
       outDir: stagingDir,
       emptyOutDir: true,
-      minify: resolved.minify.js ? "esbuild" : false,
-      cssMinify: resolved.minify.css ? "esbuild" : false,
+      minify: resolved.minify.js ? 'esbuild' : false,
+      cssMinify: resolved.minify.css ? 'esbuild' : false,
       sourcemap: resolved.sourcemap,
       target: resolved.target,
       lib: {
@@ -238,7 +222,7 @@ function buildInlineConfig(
         // from multiple Rolldown-built clientlibs) trigger `SyntaxError:
         // Identifier '<x>' has already been declared` at parse time. The
         // legacy webpack output had the same `(()=>{...})()` shape.
-        formats: ["iife"] as ("iife")[],
+        formats: ['iife'] as 'iife'[],
         // IIFE/UMD require a global var name even when the bundle exposes no
         // exports. Sanitize the clientlib name to a valid JS identifier — the
         // resulting `var <name>` line is harmless (just one global) and
@@ -254,9 +238,9 @@ function buildInlineConfig(
         output: {
           inlineDynamicImports: true,
           assetFileNames: (info: { name?: string }) =>
-            (info.name ?? "").toLowerCase().endsWith(".css")
+            (info.name ?? '').toLowerCase().endsWith('.css')
               ? `${clientlib.name}.css`
-              : "[name][extname]",
+              : '[name][extname]',
           // Rewrite sourcemap `sources[]` to a stable virtual URL rooted at
           // the consumer project so DevTools (a) doesn't try to fetch the
           // original files from the served `.js` path (where they don't
@@ -268,10 +252,7 @@ function buildInlineConfig(
           // Vite/Rollup only invokes this when sourcemaps are emitted.
           sourcemapPathTransform: (relativeSourcePath: string): string => {
             const abs = path.resolve(stagingDir, relativeSourcePath);
-            const rel = path
-              .relative(realConfigDir, abs)
-              .split(path.sep)
-              .join("/");
+            const rel = path.relative(realConfigDir, abs).split(path.sep).join('/');
             return `aemvite://${clientlib.name}/${rel}`;
           },
         },
@@ -301,24 +282,19 @@ function buildInlineConfig(
  * `resources/` subtree avoids both problems — the `sourceMappingURL` comment
  * in the JS/CSS is rewritten to match (see `rewriteSourceMappingUrls`).
  */
-async function collectStagedFiles(
-  stagingDir: string,
-  files: StagedFile[],
-): Promise<void> {
+async function collectStagedFiles(stagingDir: string, files: StagedFile[]): Promise<void> {
   for (const rel of await walk(stagingDir)) {
-    const posix = rel.split(path.sep).join("/");
-    const topLevel = !posix.includes("/");
-    const basename = posix.startsWith("resources/")
-      ? posix.slice("resources/".length)
-      : posix;
+    const posix = rel.split(path.sep).join('/');
+    const topLevel = !posix.includes('/');
+    const basename = posix.startsWith('resources/') ? posix.slice('resources/'.length) : posix;
     const lower = basename.toLowerCase();
-    if (topLevel && (lower.endsWith(".js") || lower.endsWith(".css"))) {
+    if (topLevel && (lower.endsWith('.js') || lower.endsWith('.css'))) {
       // The per-clientlib code bundles (e.g. `site.js` / `site.css`).
       files.push({
         source: path.join(stagingDir, rel),
         basename,
       });
-    } else if (topLevel && lower.endsWith(".map")) {
+    } else if (topLevel && lower.endsWith('.map')) {
       // Nested basename routes the map to `resources/sourcemaps/<file>` via
       // the emitter's `resources` bucket (classifyFile routes `.map` there).
       files.push({
@@ -349,10 +325,7 @@ async function collectStagedFiles(
  *   CSS: `/*# sourceMappingURL=site.css.map *\/`
  * We rewrite only the URL token, leaving everything else untouched.
  */
-async function rewriteSourceMappingUrls(
-  stagingDir: string,
-  clientlibName: string,
-): Promise<void> {
+async function rewriteSourceMappingUrls(stagingDir: string, clientlibName: string): Promise<void> {
   let entries;
   try {
     entries = await readdir(stagingDir, { withFileTypes: true });
@@ -362,13 +335,12 @@ async function rewriteSourceMappingUrls(
   for (const entry of entries) {
     if (!entry.isFile()) continue;
     const lower = entry.name.toLowerCase();
-    if (lower.endsWith(".map")) continue;
-    if (!lower.endsWith(".js") && !lower.endsWith(".css")) continue;
+    if (lower.endsWith('.map')) continue;
+    if (!lower.endsWith('.js') && !lower.endsWith('.css')) continue;
     const full = path.join(stagingDir, entry.name);
-    const content = await readFile(full, "utf8");
+    const content = await readFile(full, 'utf8');
     const mapName = `${entry.name}.map`;
-    const newUrl =
-      `clientlib-${clientlibName}/resources/sourcemaps/${mapName}`;
+    const newUrl = `clientlib-${clientlibName}/resources/sourcemaps/${mapName}`;
     let rewritten = content.replace(
       /\/\/# sourceMappingURL=[^\s]+/,
       `//# sourceMappingURL=${newUrl}`,
@@ -378,7 +350,7 @@ async function rewriteSourceMappingUrls(
       `/*# sourceMappingURL=${newUrl} */`,
     );
     if (rewritten !== content) {
-      await writeFile(full, rewritten, "utf8");
+      await writeFile(full, rewritten, 'utf8');
     }
   }
 }
@@ -399,12 +371,12 @@ function realpathOrSelf(p: string): string {
  * project symbols that could otherwise collide via AEM aggregation.
  */
 function toIifeName(clientlibName: string): string {
-  const sanitized = clientlibName.replace(/[^A-Za-z0-9_$]/g, "_");
+  const sanitized = clientlibName.replace(/[^A-Za-z0-9_$]/g, '_');
   const safe = /^[0-9]/.test(sanitized) ? `_${sanitized}` : sanitized;
   return `__aemvite_${safe}`;
 }
 
-async function walk(dir: string, prefix = ""): Promise<string[]> {
+async function walk(dir: string, prefix = ''): Promise<string[]> {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });

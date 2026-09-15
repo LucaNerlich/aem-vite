@@ -3,11 +3,7 @@
     "target": "es2022",
     "module": "es2022",
     "moduleResolution": "bundler",
-    "lib": [
-      "es2022",
-      "dom",
-      "dom.iterable"
-    ],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -20,10 +16,6 @@
     "strict": true,
     "noEmit": true
   },
-  "include": [
-    "./src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

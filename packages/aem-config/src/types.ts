@@ -1,4 +1,4 @@
-import type { PluginOption, UserConfig } from "vite";
+import type { PluginOption, UserConfig } from 'vite';
 
 export type ProcessorList = readonly string[];
 
@@ -11,9 +11,7 @@ export type ProcessorList = readonly string[];
  * - `false` — explicitly disable (overrides a global `true`).
  * - object — wire with the supplied options.
  */
-export type CssUrlPassthroughOption =
-  | boolean
-  | { resourceDirs?: readonly string[] };
+export type CssUrlPassthroughOption = boolean | { resourceDirs?: readonly string[] };
 
 /**
  * Toggle / configure the Handlebars precompile + Storybook-stub plugin
@@ -47,7 +45,7 @@ export type HandlebarsOption =
  */
 export interface BuildOptions {
   minify?: boolean | { js?: boolean; css?: boolean };
-  sourcemap?: boolean | "inline" | "hidden";
+  sourcemap?: boolean | 'inline' | 'hidden';
   target?: string | string[];
 }
 
@@ -57,7 +55,7 @@ export interface BuildOptions {
  */
 export interface ResolvedBuildOptions {
   minify: { js: boolean; css: boolean };
-  sourcemap: boolean | "inline" | "hidden";
+  sourcemap: boolean | 'inline' | 'hidden';
   target: string | string[];
 }
 
@@ -77,7 +75,7 @@ export interface AemClientlib {
   /** Whether the clientlib is proxyable via `/etc.clientlibs`. */
   allowProxy?: boolean;
   /** Serialization format of `.content.xml` (default: `"xml"`). */
-  serializationFormat?: "xml";
+  serializationFormat?: 'xml';
   /** AEM CSS processor directives. */
   cssProcessor?: ProcessorList;
   /** AEM JS processor directives. */
@@ -148,10 +146,7 @@ export interface AemConfig {
 
 export type ResolvedAemClientlib = AemClientlib &
   Required<
-    Pick<
-      AemClientlib,
-      "allowProxy" | "serializationFormat" | "cssProcessor" | "jsProcessor"
-    >
+    Pick<AemClientlib, 'allowProxy' | 'serializationFormat' | 'cssProcessor' | 'jsProcessor'>
   >;
 
 export interface ResolvedAemConfig {
@@ -169,7 +164,7 @@ export interface ResolvedAemConfig {
   vite?: UserConfig;
 }
 
-export type BuildMode = "development" | "production";
+export type BuildMode = 'development' | 'production';
 
 export interface BuildClientlibsOptions {
   mode: BuildMode;

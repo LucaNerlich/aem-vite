@@ -42,14 +42,14 @@ extraction emits the `.css` outside the Rollup chunk map.
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { aemCssUrlPassthrough } from "@aemvite/vite-plugin-aem-css-url-passthrough";
+import { defineConfig } from 'vite';
+import { aemCssUrlPassthrough } from '@aemvite/vite-plugin-aem-css-url-passthrough';
 
 export default defineConfig({
   plugins: [
     aemCssUrlPassthrough({
       // Optional; defaults to ["images", "fonts"].
-      resourceDirs: ["images", "fonts", "icons", "storybook-assets"],
+      resourceDirs: ['images', 'fonts', 'icons', 'storybook-assets'],
     }),
   ],
 });
@@ -61,14 +61,12 @@ Set the `cssUrlPassthrough` flag in your `aem.config.{ts,mjs}` and the plugin
 is auto-wired into every clientlib build:
 
 ```ts
-import { defineAemConfig } from "@aemvite/aem-config";
+import { defineAemConfig } from '@aemvite/aem-config';
 
 export default defineAemConfig({
-  clientLibRoot: "../ui.apps/.../clientlibs",
+  clientLibRoot: '../ui.apps/.../clientlibs',
   cssUrlPassthrough: true, // or: { resourceDirs: ["images", "fonts", "icons"] }
-  clientlibs: [
-    /* ... */
-  ],
+  clientlibs: [/* ... */],
 });
 ```
 
@@ -79,8 +77,8 @@ global value.
 
 ### Plugin
 
-| Export | Signature | Notes |
-|---|---|---|
+| Export                 | Signature                                           | Notes                                                                                   |
+| ---------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `aemCssUrlPassthrough` | `(options?: AemCssUrlPassthroughOptions) => Plugin` | Vite plugin (also the package default export). `apply: "build"`, runs at `writeBundle`. |
 
 ### Types

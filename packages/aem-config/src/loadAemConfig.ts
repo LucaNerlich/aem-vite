@@ -1,7 +1,7 @@
-import path from "node:path";
-import { pathToFileURL } from "node:url";
-import { mergeDefaults } from "./mergeDefaults.js";
-import type { AemConfig, BuildMode, ResolvedAemConfig } from "./types.js";
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { mergeDefaults } from './mergeDefaults.js';
+import type { AemConfig, BuildMode, ResolvedAemConfig } from './types.js';
 
 /** Options for {@link loadAemConfig}. */
 export interface LoadAemConfigOptions {
@@ -27,24 +27,18 @@ export async function loadAemConfig(
   const ext = path.extname(absolute).toLowerCase();
 
   const raw =
-    ext === ".ts" || ext === ".mts" || ext === ".cts"
+    ext === '.ts' || ext === '.mts' || ext === '.cts'
       ? await loadViaVite(absolute, options.mode)
       : await loadViaImport(absolute);
 
   return mergeDefaults(raw);
 }
 
-async function loadViaVite(
-  absolute: string,
-  mode: BuildMode = "production",
-): Promise<AemConfig> {
+async function loadViaVite(absolute: string, mode: BuildMode = 'production'): Promise<AemConfig> {
   // Import Vite lazily so consumers that pre-resolve their config (or stub
   // this loader in tests) don't pay the cost of loading Vite up front.
-  const { loadConfigFromFile } = await import("vite");
-  const result = await loadConfigFromFile(
-    { command: "build", mode },
-    absolute,
-  );
+  const { loadConfigFromFile } = await import('vite');
+  const result = await loadConfigFromFile({ command: 'build', mode }, absolute);
   if (!result) {
     throw new Error(`Failed to load AEM config at ${absolute}`);
   }
@@ -61,22 +55,20 @@ async function loadViaImport(absolute: string): Promise<AemConfig> {
 
 function unwrapDefault(value: unknown): AemConfig {
   const candidate =
-    typeof value === "object" && value !== null && "default" in value
+    typeof value === 'object' && value !== null && 'default' in value
       ? (value as { default: unknown }).default
       : value;
   if (!isAemConfig(candidate)) {
-    throw new Error(
-      "AEM config must export an object with `clientLibRoot` and `clientlibs`",
-    );
+    throw new Error('AEM config must export an object with `clientLibRoot` and `clientlibs`');
   }
   return candidate;
 }
 
 function isAemConfig(value: unknown): value is AemConfig {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    typeof (value as AemConfig).clientLibRoot === "string" &&
+    typeof (value as AemConfig).clientLibRoot === 'string' &&
     Array.isArray((value as AemConfig).clientlibs)
   );
 }

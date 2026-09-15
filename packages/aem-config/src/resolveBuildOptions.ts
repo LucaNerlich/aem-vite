@@ -1,11 +1,7 @@
-import { defaultTarget, modeBaselines } from "./defaults.js";
-import type {
-  BuildMode,
-  BuildOptions,
-  ResolvedBuildOptions,
-} from "./types.js";
+import { defaultTarget, modeBaselines } from './defaults.js';
+import type { BuildMode, BuildOptions, ResolvedBuildOptions } from './types.js';
 
-type MinifyInput = BuildOptions["minify"];
+type MinifyInput = BuildOptions['minify'];
 
 /**
  * Resolve build options for a single clientlib in three layers (lowest →
@@ -27,16 +23,10 @@ export function resolveBuildOptions(
   const baseline = modeBaselines[mode];
   return {
     minify: {
-      js: pickMinify("js", perClientlib?.minify, global?.minify, baseline.minify),
-      css: pickMinify(
-        "css",
-        perClientlib?.minify,
-        global?.minify,
-        baseline.minify,
-      ),
+      js: pickMinify('js', perClientlib?.minify, global?.minify, baseline.minify),
+      css: pickMinify('css', perClientlib?.minify, global?.minify, baseline.minify),
     },
-    sourcemap:
-      perClientlib?.sourcemap ?? global?.sourcemap ?? baseline.sourcemap ?? false,
+    sourcemap: perClientlib?.sourcemap ?? global?.sourcemap ?? baseline.sourcemap ?? false,
     target: perClientlib?.target ?? global?.target ?? defaultTarget,
   };
 }
@@ -46,13 +36,10 @@ export function resolveBuildOptions(
  * defined value for `key`. Boolean layers always answer; object layers only
  * answer when they specify the key.
  */
-function pickMinify(
-  key: "js" | "css",
-  ...layers: readonly MinifyInput[]
-): boolean {
+function pickMinify(key: 'js' | 'css', ...layers: readonly MinifyInput[]): boolean {
   for (const layer of layers) {
     if (layer === undefined) continue;
-    if (typeof layer === "boolean") return layer;
+    if (typeof layer === 'boolean') return layer;
     if (layer[key] !== undefined) return layer[key]!;
   }
   return false;

@@ -25,7 +25,7 @@ In an AEM `ui.frontend` clientlib it's normal to splat every component's
 styles into a single bundle with a glob like:
 
 ```scss
-@import "../components/**/*.scss";
+@import '../components/**/*.scss';
 ```
 
 Vite (and Sass / esbuild) does not natively understand glob specifiers in
@@ -56,8 +56,8 @@ as a build/dev warning.
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { aemViteGlob } from "@aemvite/vite-plugin-glob";
+import { defineConfig } from 'vite';
+import { aemViteGlob } from '@aemvite/vite-plugin-glob';
 
 export default defineConfig({
   plugins: [aemViteGlob()],
@@ -70,13 +70,13 @@ glob `@`-rules expanded before Sass or esbuild sees the source.
 ### With options
 
 ```ts
-import { aemViteGlob } from "@aemvite/vite-plugin-glob";
+import { aemViteGlob } from '@aemvite/vite-plugin-glob';
 
 export default {
   plugins: [
     aemViteGlob({
       // Default: ['.scss', '.sass', '.css']. Pass a narrower list to skip files.
-      extensions: [".scss", ".css"],
+      extensions: ['.scss', '.css'],
     }),
   ],
 };
@@ -89,19 +89,19 @@ Two import paths are supported — the main entry and a sub-path that ships only
 the pure function (useful for non-Vite tooling):
 
 ```ts
-import { expandStyleGlobs } from "@aemvite/vite-plugin-glob";
+import { expandStyleGlobs } from '@aemvite/vite-plugin-glob';
 // or, dependency-free of the plugin shim:
-import { expandStyleGlobs } from "@aemvite/vite-plugin-glob/expand";
+import { expandStyleGlobs } from '@aemvite/vite-plugin-glob/expand';
 
 const code = `@import "./components/**/*.scss";`;
-const out = expandStyleGlobs(code, "/abs/path/to/styles.scss");
+const out = expandStyleGlobs(code, '/abs/path/to/styles.scss');
 // out === "@import './components/button.scss';\n@import './components/card.scss';"
 ```
 
 Use `expandStyleGlobsWithResult` if you want statistics:
 
 ```ts
-import { expandStyleGlobsWithResult } from "@aemvite/vite-plugin-glob";
+import { expandStyleGlobsWithResult } from '@aemvite/vite-plugin-glob';
 
 const { code, expanded, files } = expandStyleGlobsWithResult(src, fromFile);
 // expanded: number of @-rules that matched a glob
@@ -112,55 +112,55 @@ const { code, expanded, files } = expandStyleGlobsWithResult(src, fromFile);
 
 ```scss
 /* styles.scss */
-@import "variables";
-@import "./components/**/*.scss";
+@import 'variables';
+@import './components/**/*.scss';
 ```
 
 becomes (assuming `components/button.scss` and `components/card.scss` exist):
 
 ```scss
 /* styles.scss */
-@import "variables";
-@import "./components/button.scss";
-@import "./components/card.scss";
+@import 'variables';
+@import './components/button.scss';
+@import './components/card.scss';
 ```
 
 ## API reference
 
 ### Plugin
 
-| Export | Signature | Notes |
-|---|---|---|
+| Export        | Signature                                  | Notes                                                                                   |
+| ------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
 | `aemViteGlob` | `(options?: AemViteGlobOptions) => Plugin` | Vite plugin (also the package default export). `enforce: "pre"`, runs in `transform()`. |
 
 #### `AemViteGlobOptions`
 
-| Field | Type | Default | Effect |
-|---|---|---|---|
+| Field        | Type       | Default                      | Effect                                                                                              |
+| ------------ | ---------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
 | `extensions` | `string[]` | `[".scss", ".sass", ".css"]` | File extensions to scan. Files whose `id` (minus query) does not end with one of these are ignored. |
 
 ### Functions (also exported from `@aemvite/vite-plugin-glob/expand`)
 
-| Export | Signature | Notes |
-|---|---|---|
-| `expandStyleGlobs` | `(source: string, fromFile: string, options?: ExpandOptions) => string` | Pure transform. Returns the rewritten source. |
-| `expandStyleGlobsWithResult` | `(source: string, fromFile: string, options?: ExpandOptions) => ExpandResult` | Same as above, but returns `{ code, expanded, files }`. |
-| `hasGlobMagic` | `(spec: string) => boolean` | True if `spec` contains any glob magic character (`* ? [ ] { } ! ( )`). |
+| Export                       | Signature                                                                     | Notes                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `expandStyleGlobs`           | `(source: string, fromFile: string, options?: ExpandOptions) => string`       | Pure transform. Returns the rewritten source.                           |
+| `expandStyleGlobsWithResult` | `(source: string, fromFile: string, options?: ExpandOptions) => ExpandResult` | Same as above, but returns `{ code, expanded, files }`.                 |
+| `hasGlobMagic`               | `(spec: string) => boolean`                                                   | True if `spec` contains any glob magic character (`* ? [ ] { } ! ( )`). |
 
 #### `ExpandOptions`
 
-| Field | Type | Default | Effect |
-|---|---|---|---|
-| `cwd` | `string` | `dirname(fromFile)` | Base directory for resolving relative glob patterns. |
+| Field  | Type                               | Default                 | Effect                                                            |
+| ------ | ---------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| `cwd`  | `string`                           | `dirname(fromFile)`     | Base directory for resolving relative glob patterns.              |
 | `sort` | `(a: string, b: string) => number` | lexicographic ascending | Comparator used to order the matched files inside each expansion. |
 
 #### `ExpandResult`
 
-| Field | Type | Notes |
-|---|---|---|
-| `code` | `string` | Rewritten source. |
+| Field      | Type     | Notes                                                  |
+| ---------- | -------- | ------------------------------------------------------ |
+| `code`     | `string` | Rewritten source.                                      |
 | `expanded` | `number` | How many `@`-rules contained a glob and were expanded. |
-| `files` | `number` | Total file specifiers emitted across all expansions. |
+| `files`    | `number` | Total file specifiers emitted across all expansions.   |
 
 ## Notes & caveats
 

@@ -53,7 +53,7 @@ import {
   emitClientlibs,
   type ClientlibDefinition,
   type SourceFile,
-} from "@aemvite/vite-plugin-aem-clientlib";
+} from '@aemvite/vite-plugin-aem-clientlib';
 
 const clientlibs: Array<{
   clientlib: ClientlibDefinition;
@@ -61,21 +61,21 @@ const clientlibs: Array<{
 }> = [
   {
     clientlib: {
-      name: "site",
-      categories: ["aemvite.site"],
-      dependencies: ["aemvite.dependencies"],
+      name: 'site',
+      categories: ['aemvite.site'],
+      dependencies: ['aemvite.dependencies'],
     },
     files: [
-      { source: "/abs/path/dist/site/site.js",  basename: "site.js" },
-      { source: "/abs/path/dist/site/site.css", basename: "site.css" },
+      { source: '/abs/path/dist/site/site.js', basename: 'site.js' },
+      { source: '/abs/path/dist/site/site.css', basename: 'site.css' },
     ],
   },
   {
-    clientlib: { name: "dependencies", categories: ["aemvite.dependencies"] },
+    clientlib: { name: 'dependencies', categories: ['aemvite.dependencies'] },
   },
 ];
 
-await emitClientlibs("/abs/path/to/clientlib-root", clientlibs);
+await emitClientlibs('/abs/path/to/clientlib-root', clientlibs);
 // Writes: <root>/clientlib-site/{.content.xml,js.txt,css.txt,js/site.js,css/site.css}
 //         <root>/clientlib-dependencies/{.content.xml,js.txt,css.txt}
 ```
@@ -86,17 +86,17 @@ await emitClientlibs("/abs/path/to/clientlib-root", clientlibs);
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { aemClientlibPlugin } from "@aemvite/vite-plugin-aem-clientlib";
+import { defineConfig } from 'vite';
+import { aemClientlibPlugin } from '@aemvite/vite-plugin-aem-clientlib';
 
 export default defineConfig({
   plugins: [
     aemClientlibPlugin({
-      outDir: "/abs/path/to/clientlib-root",
+      outDir: '/abs/path/to/clientlib-root',
       clientlibs: [
         {
-          clientlib: { name: "site", categories: ["aemvite.site"] },
-          files: [{ source: "dist/site.js", basename: "site.js" }],
+          clientlib: { name: 'site', categories: ['aemvite.site'] },
+          files: [{ source: 'dist/site.js', basename: 'site.js' }],
         },
       ],
     }),
@@ -113,35 +113,31 @@ export default defineConfig({
 The descriptor renderers are pure and side-effect free:
 
 ```ts
-import {
-  renderContentXml,
-  renderJsTxt,
-  renderCssTxt,
-} from "@aemvite/vite-plugin-aem-clientlib";
+import { renderContentXml, renderJsTxt, renderCssTxt } from '@aemvite/vite-plugin-aem-clientlib';
 
 const xml = renderContentXml({
-  name: "site",
-  categories: ["aemvite.site"],
-  dependencies: ["aemvite.dependencies"],
+  name: 'site',
+  categories: ['aemvite.site'],
+  dependencies: ['aemvite.dependencies'],
 });
-const js = renderJsTxt(["site.js"]);   // "#base=js\n\nsite.js"
-const css = renderCssTxt([]);          // "#base=css\n\n"
+const js = renderJsTxt(['site.js']); // "#base=js\n\nsite.js"
+const css = renderCssTxt([]); // "#base=css\n\n"
 ```
 
 ## API reference
 
 ### Functions
 
-| Export | Signature | Effect |
-|---|---|---|
-| `renderContentXml` | `(def: ClientlibDefinition) => string` | Render `.content.xml` byte-for-byte. Throws when `categories` is empty. |
-| `renderTxt` | `(base: string, files: readonly string[]) => string` | Render a generic `#base=<base>\n\n<file>\n…` index (no trailing newline). |
-| `renderJsTxt` | `(files: readonly string[]) => string` | Shortcut for `renderTxt("js", files)`. |
-| `renderCssTxt` | `(files: readonly string[]) => string` | Shortcut for `renderTxt("css", files)`. |
-| `classifyFile` | `(filename: string) => "js" \| "css" \| "resources"` | Case-insensitive extension-based bucket classifier. `*.js.map` / `*.css.map` route to `resources` (see Notes & caveats). |
-| `emitClientlib` | `(options: EmitClientlibOptions) => Promise<EmitResult>` | Emit a single `clientlib-<name>/` folder to disk. Wipes the target directory first. |
-| `emitClientlibs` | `(outDir: string, clientlibs: Array<{ clientlib, files? }>) => Promise<EmitResult[]>` | Emit multiple clientlibs into the same `outDir`. |
-| `aemClientlibPlugin` | `(options: AemClientlibPluginOptions) => VitePluginLike` | Vite plugin (`apply: "build"`) that runs `emitClientlibs` at `closeBundle`. |
+| Export               | Signature                                                                             | Effect                                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `renderContentXml`   | `(def: ClientlibDefinition) => string`                                                | Render `.content.xml` byte-for-byte. Throws when `categories` is empty.                                                  |
+| `renderTxt`          | `(base: string, files: readonly string[]) => string`                                  | Render a generic `#base=<base>\n\n<file>\n…` index (no trailing newline).                                                |
+| `renderJsTxt`        | `(files: readonly string[]) => string`                                                | Shortcut for `renderTxt("js", files)`.                                                                                   |
+| `renderCssTxt`       | `(files: readonly string[]) => string`                                                | Shortcut for `renderTxt("css", files)`.                                                                                  |
+| `classifyFile`       | `(filename: string) => "js" \| "css" \| "resources"`                                  | Case-insensitive extension-based bucket classifier. `*.js.map` / `*.css.map` route to `resources` (see Notes & caveats). |
+| `emitClientlib`      | `(options: EmitClientlibOptions) => Promise<EmitResult>`                              | Emit a single `clientlib-<name>/` folder to disk. Wipes the target directory first.                                      |
+| `emitClientlibs`     | `(outDir: string, clientlibs: Array<{ clientlib, files? }>) => Promise<EmitResult[]>` | Emit multiple clientlibs into the same `outDir`.                                                                         |
+| `aemClientlibPlugin` | `(options: AemClientlibPluginOptions) => VitePluginLike`                              | Vite plugin (`apply: "build"`) that runs `emitClientlibs` at `closeBundle`.                                              |
 
 ### Types
 
@@ -151,30 +147,30 @@ const css = renderCssTxt([]);          // "#base=css\n\n"
 
 #### `ClientlibDefinition`
 
-| Field | Type | Default | Notes |
-|---|---|---|---|
-| `name` | `string` | — | Bare name; the folder will be `clientlib-<name>`. |
-| `categories` | `string[]` | — | Required, non-empty. |
-| `dependencies` | `string[]` | _(omitted)_ | Attribute is left out of `.content.xml` when undefined or empty. |
-| `cssProcessor` | `string[]` | `["default:none","min:none"]` | |
-| `jsProcessor` | `string[]` | `["default:none","min:none"]` | |
-| `allowProxy` | `boolean` | `true` | Rendered as `allowProxy="{Boolean}…"`. |
+| Field          | Type       | Default                       | Notes                                                            |
+| -------------- | ---------- | ----------------------------- | ---------------------------------------------------------------- |
+| `name`         | `string`   | —                             | Bare name; the folder will be `clientlib-<name>`.                |
+| `categories`   | `string[]` | —                             | Required, non-empty.                                             |
+| `dependencies` | `string[]` | _(omitted)_                   | Attribute is left out of `.content.xml` when undefined or empty. |
+| `cssProcessor` | `string[]` | `["default:none","min:none"]` |                                                                  |
+| `jsProcessor`  | `string[]` | `["default:none","min:none"]` |                                                                  |
+| `allowProxy`   | `boolean`  | `true`                        | Rendered as `allowProxy="{Boolean}…"`.                           |
 
 #### `SourceFile`
 
-| Field | Type | Notes |
-|---|---|---|
-| `source` | `string` | Absolute or process-relative path to the source file on disk. |
+| Field      | Type     | Notes                                                                              |
+| ---------- | -------- | ---------------------------------------------------------------------------------- |
+| `source`   | `string` | Absolute or process-relative path to the source file on disk.                      |
 | `basename` | `string` | Destination basename inside the clientlib bucket (`js/`, `css/`, or `resources/`). |
 
 #### `EmitResult`
 
-| Field | Type | Notes |
-|---|---|---|
-| `clientlibDir` | `string` | Path of the emitted `clientlib-<name>` folder. |
-| `jsFiles` | `string[]` | Files placed under `js/`, in `js.txt` order. |
-| `cssFiles` | `string[]` | Files placed under `css/`, in `css.txt` order. |
-| `resourceFiles` | `string[]` | Files placed under `resources/`. |
+| Field           | Type       | Notes                                          |
+| --------------- | ---------- | ---------------------------------------------- |
+| `clientlibDir`  | `string`   | Path of the emitted `clientlib-<name>` folder. |
+| `jsFiles`       | `string[]` | Files placed under `js/`, in `js.txt` order.   |
+| `cssFiles`      | `string[]` | Files placed under `css/`, in `css.txt` order. |
+| `resourceFiles` | `string[]` | Files placed under `resources/`.               |
 
 ## Notes & caveats
 
@@ -203,7 +199,7 @@ const css = renderCssTxt([]);          // "#base=css\n\n"
   rewrite the `sourceMappingURL` comment to match — see the
   [root README](https://github.com/LucaNerlich/aem-vite#sourcemaps-when-enabled).
 - **Destructive emit.** `emitClientlib` calls `rm(clientlibDir, {
-  recursive: true, force: true })` before writing. Don't aim it at a directory
+recursive: true, force: true })` before writing. Don't aim it at a directory
   whose siblings you care about — `clientLibRoot` itself is preserved, but the
   per-clientlib folder is wiped.
 - **`emitClientlibs` is sequential.** Folders are emitted in input order; this
@@ -220,4 +216,3 @@ const css = renderCssTxt([]);          // "#base=css\n\n"
 
 <https://github.com/LucaNerlich/aem-vite> (this package lives in
 [`packages/vite-plugin-aem-clientlib`](https://github.com/LucaNerlich/aem-vite/tree/main/packages/vite-plugin-aem-clientlib)).
-

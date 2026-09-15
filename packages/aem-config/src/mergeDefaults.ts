@@ -1,11 +1,6 @@
-import { basename } from "node:path";
-import { defaults } from "./defaults.js";
-import type {
-  AemClientlib,
-  AemConfig,
-  ResolvedAemClientlib,
-  ResolvedAemConfig,
-} from "./types.js";
+import { basename } from 'node:path';
+import { defaults } from './defaults.js';
+import type { AemClientlib, AemConfig, ResolvedAemClientlib, ResolvedAemConfig } from './types.js';
 
 /**
  * Merge the package-level `defaults` followed by the user-supplied
@@ -34,8 +29,7 @@ export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
     ...(config.cssUrlPassthrough !== undefined
       ? { cssUrlPassthrough: config.cssUrlPassthrough }
       : {}),
-    ...(config.handlebars !== undefined
-      ? { handlebars: config.handlebars } : {}),
+    ...(config.handlebars !== undefined ? { handlebars: config.handlebars } : {}),
     ...(config.plugins !== undefined ? { plugins: config.plugins } : {}),
     ...(config.vite !== undefined ? { vite: config.vite } : {}),
   };
@@ -49,12 +43,12 @@ export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
  */
 function isValidClientlibName(name: string): boolean {
   return (
-    typeof name === "string" &&
+    typeof name === 'string' &&
     name.length > 0 &&
-    name !== "." &&
-    name !== ".." &&
-    !name.includes("/") &&
-    !name.includes("\\") &&
+    name !== '.' &&
+    name !== '..' &&
+    !name.includes('/') &&
+    !name.includes('\\') &&
     basename(name) === name
   );
 }
@@ -62,10 +56,8 @@ function isValidClientlibName(name: string): boolean {
 function assertValidClientlibs(clientlibs: AemClientlib[]): void {
   const seen = new Set<string>();
   for (const clientlib of clientlibs) {
-    if (typeof clientlib !== "object" || clientlib === null) {
-      throw new Error(
-        `Invalid clientlib entry: expected an object, got ${typeof clientlib}`,
-      );
+    if (typeof clientlib !== 'object' || clientlib === null) {
+      throw new Error(`Invalid clientlib entry: expected an object, got ${typeof clientlib}`);
     }
     if (!isValidClientlibName(clientlib.name)) {
       throw new Error(
@@ -96,18 +88,13 @@ function resolveClientlib(
   return {
     ...merged,
     allowProxy: merged.allowProxy ?? defaults.allowProxy,
-    serializationFormat:
-      merged.serializationFormat ?? defaults.serializationFormat,
+    serializationFormat: merged.serializationFormat ?? defaults.serializationFormat,
     // Copy the winning array so every resolved clientlib owns its list —
     // mutations can never corrupt the global defaults, the config's own
     // arrays, or sibling clientlibs.
     cssProcessor: [
-      ...(clientlib.cssProcessor ??
-        userDefaults.cssProcessor ??
-        defaults.cssProcessor),
+      ...(clientlib.cssProcessor ?? userDefaults.cssProcessor ?? defaults.cssProcessor),
     ],
-    jsProcessor: [
-      ...(clientlib.jsProcessor ?? userDefaults.jsProcessor ?? defaults.jsProcessor),
-    ],
+    jsProcessor: [...(clientlib.jsProcessor ?? userDefaults.jsProcessor ?? defaults.jsProcessor)],
   };
 }

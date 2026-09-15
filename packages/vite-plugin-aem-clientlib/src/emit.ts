@@ -1,22 +1,9 @@
 import { mkdir, copyFile, writeFile, rm, rename } from 'node:fs/promises';
-import {
-  basename,
-  dirname,
-  isAbsolute,
-  join,
-  relative,
-  resolve,
-  sep,
-} from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 import { renderContentXml, renderCssTxt, renderJsTxt } from './descriptors.js';
 import { classifyFile } from './layout.js';
-import type {
-  ClientlibDefinition,
-  EmitClientlibOptions,
-  EmitResult,
-  SourceFile,
-} from './types.js';
+import type { ClientlibDefinition, EmitClientlibOptions, EmitResult, SourceFile } from './types.js';
 
 /**
  * Whether `name` is safe to use as a `clientlib-<name>` folder name:
@@ -62,9 +49,7 @@ function assertSafeBasename(basename: string, clientlibDir: string): void {
   const resolved = resolve(clientlibDir, basename);
   const rel = relative(clientlibDir, resolved);
   if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
-    throw new Error(
-      `Source basename ${JSON.stringify(basename)} escapes the clientlib directory`,
-    );
+    throw new Error(`Source basename ${JSON.stringify(basename)} escapes the clientlib directory`);
   }
 }
 
@@ -94,9 +79,7 @@ function assertSafeBasename(basename: string, clientlibDir: string): void {
  * swapped in atomically, so a failed copy mid-emit never leaves a
  * half-written clientlib or destroys the last good output.
  */
-export async function emitClientlib(
-  options: EmitClientlibOptions,
-): Promise<EmitResult> {
+export async function emitClientlib(options: EmitClientlibOptions): Promise<EmitResult> {
   const { clientlib, outDir, files = [] } = options;
   assertValidClientlibName(clientlib.name);
   const clientlibDir = join(outDir, `clientlib-${clientlib.name}`);

@@ -36,10 +36,7 @@ function normalizeEntries(options: AemResourcesOptions): ResourceCopy[] {
  * files and directories count as real content. Returns 0 if `src` is
  * missing or empty.
  */
-async function countRealFiles(
-  src: string,
-  seen: Set<string> = new Set(),
-): Promise<number> {
+async function countRealFiles(src: string, seen: Set<string> = new Set()): Promise<number> {
   let entries;
   try {
     entries = await fs.readdir(src, { withFileTypes: true });
@@ -82,11 +79,7 @@ async function countRealFiles(
  * link is followed); broken links are skipped. Returns the number of files
  * copied.
  */
-async function copyTree(
-  src: string,
-  dest: string,
-  seen: Set<string> = new Set(),
-): Promise<number> {
+async function copyTree(src: string, dest: string, seen: Set<string> = new Set()): Promise<number> {
   let entries;
   try {
     entries = await fs.readdir(src, { withFileTypes: true });
@@ -148,23 +141,15 @@ export function aemResources(options: AemResourcesOptions): Plugin {
     async closeBundle() {
       const root = resolved?.root ?? process.cwd();
       const outDirRaw = resolved?.build.outDir ?? 'dist';
-      const outDir = path.isAbsolute(outDirRaw)
-        ? outDirRaw
-        : path.resolve(root, outDirRaw);
+      const outDir = path.isAbsolute(outDirRaw) ? outDirRaw : path.resolve(root, outDirRaw);
 
       for (const entry of entries) {
-        const fromAbs = path.isAbsolute(entry.from)
-          ? entry.from
-          : path.resolve(root, entry.from);
+        const fromAbs = path.isAbsolute(entry.from) ? entry.from : path.resolve(root, entry.from);
         const toRel = entry.to ?? DEFAULT_TO;
-        const toAbs = path.isAbsolute(toRel)
-          ? toRel
-          : path.resolve(outDir, toRel);
+        const toAbs = path.isAbsolute(toRel) ? toRel : path.resolve(outDir, toRel);
 
         if ((await countRealFiles(fromAbs)) === 0) {
-          (
-            this as { warn?: (msg: string) => void } | undefined
-          )?.warn?.(
+          (this as { warn?: (msg: string) => void } | undefined)?.warn?.(
             `aemvite:aem-resources: '${fromAbs}' contains no files — ` +
               `nothing was copied to '${toRel}'`,
           );

@@ -54,21 +54,21 @@ npm i -D sass
 
 ```ts
 // aem.config.ts
-import { defineAemConfig } from "@aemvite/aem-config";
+import { defineAemConfig } from '@aemvite/aem-config';
 
 export default defineAemConfig({
-  clientLibRoot: "../ui.apps/src/main/content/jcr_root/apps/aemvite/clientlibs",
+  clientLibRoot: '../ui.apps/src/main/content/jcr_root/apps/aemvite/clientlibs',
   clientlibs: [
     {
-      name: "site",
-      entry: "src/main.ts",
-      categories: ["aemvite.site"],
-      dependencies: ["aemvite.dependencies"],
+      name: 'site',
+      entry: 'src/main.ts',
+      categories: ['aemvite.site'],
+      dependencies: ['aemvite.dependencies'],
     },
     {
-      name: "dependencies",
-      entry: "src/deps.ts",
-      categories: ["aemvite.dependencies"],
+      name: 'dependencies',
+      entry: 'src/deps.ts',
+      categories: ['aemvite.dependencies'],
     },
   ],
 });
@@ -95,32 +95,32 @@ Wire it into `package.json`:
 
 ### `AemConfig`
 
-| Field | Type | Default | Notes |
-|---|---|---|---|
-| `clientLibRoot` | `string` | — | Output root for emitted `clientlib-<name>/` folders. Absolute or relative to the config file. |
-| `clientlibs` | `AemClientlib[]` | — | One entry per clientlib folder. |
-| `defaults` | `Partial<AemClientlib>` | `{}` | Per-clientlib defaults merged into every entry (per-clientlib values win). |
-| `build` | `BuildOptions` | `{}` | Global build overrides; layered under per-clientlib `build` (see below). |
-| `plugins` | `PluginOption \| PluginOption[]` | _(none)_ | Extra Vite plugins injected into **every** clientlib build (after the built-in glob + resources plugins). |
-| `vite` | `UserConfig` | _(none)_ | Deep Vite config merged (via `mergeConfig`) into every clientlib build — runs after per-entry wiring and after `plugins`. |
+| Field           | Type                             | Default  | Notes                                                                                                                     |
+| --------------- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `clientLibRoot` | `string`                         | —        | Output root for emitted `clientlib-<name>/` folders. Absolute or relative to the config file.                             |
+| `clientlibs`    | `AemClientlib[]`                 | —        | One entry per clientlib folder.                                                                                           |
+| `defaults`      | `Partial<AemClientlib>`          | `{}`     | Per-clientlib defaults merged into every entry (per-clientlib values win).                                                |
+| `build`         | `BuildOptions`                   | `{}`     | Global build overrides; layered under per-clientlib `build` (see below).                                                  |
+| `plugins`       | `PluginOption \| PluginOption[]` | _(none)_ | Extra Vite plugins injected into **every** clientlib build (after the built-in glob + resources plugins).                 |
+| `vite`          | `UserConfig`                     | _(none)_ | Deep Vite config merged (via `mergeConfig`) into every clientlib build — runs after per-entry wiring and after `plugins`. |
 
 ### `AemClientlib`
 
-| Field | Type | Default | Notes |
-|---|---|---|---|
-| `name` | `string` | — | Clientlib folder name (e.g. `"site"` → `clientlib-site`). |
-| `entry` | `string` | — | Path to the entry source file (relative to the config dir or absolute). Empty string is allowed for descriptor-only clientlibs. |
-| `categories` | `readonly string[]` | — | AEM `categories="[...]"`. Required, non-empty. |
-| `dependencies` | `readonly string[]` | _(omitted)_ | AEM `dependencies="[...]"`. Omitted from `.content.xml` when empty/undefined. |
-| `embed` | `readonly string[]` | _(none)_ | Embedded clientlib categories. |
-| `resources` | `readonly string[]` | _(none)_ | Resource directories to copy into the clientlib's `resources/` folder. |
-| `allowProxy` | `boolean` | `true` | `allowProxy="{Boolean}…"`. |
-| `serializationFormat` | `"xml"` | `"xml"` | `.content.xml` serialization format. |
-| `cssProcessor` | `readonly string[]` | `["default:none","min:none"]` | AEM CSS processor directives. |
-| `jsProcessor` | `readonly string[]` | `["default:none","min:none"]` | AEM JS processor directives. |
-| `build` | `BuildOptions` | `{}` | Per-clientlib build overrides; layered over `AemConfig.build`. |
-| `plugins` | `PluginOption \| PluginOption[]` | _(inherits global)_ | Extra Vite plugins for this clientlib only (appended after the global `plugins`). |
-| `vite` | `UserConfig` | _(inherits global)_ | Per-clientlib deep Vite config override (merged after the global `vite`). |
+| Field                 | Type                             | Default                       | Notes                                                                                                                           |
+| --------------------- | -------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                | `string`                         | —                             | Clientlib folder name (e.g. `"site"` → `clientlib-site`).                                                                       |
+| `entry`               | `string`                         | —                             | Path to the entry source file (relative to the config dir or absolute). Empty string is allowed for descriptor-only clientlibs. |
+| `categories`          | `readonly string[]`              | —                             | AEM `categories="[...]"`. Required, non-empty.                                                                                  |
+| `dependencies`        | `readonly string[]`              | _(omitted)_                   | AEM `dependencies="[...]"`. Omitted from `.content.xml` when empty/undefined.                                                   |
+| `embed`               | `readonly string[]`              | _(none)_                      | Embedded clientlib categories.                                                                                                  |
+| `resources`           | `readonly string[]`              | _(none)_                      | Resource directories to copy into the clientlib's `resources/` folder.                                                          |
+| `allowProxy`          | `boolean`                        | `true`                        | `allowProxy="{Boolean}…"`.                                                                                                      |
+| `serializationFormat` | `"xml"`                          | `"xml"`                       | `.content.xml` serialization format.                                                                                            |
+| `cssProcessor`        | `readonly string[]`              | `["default:none","min:none"]` | AEM CSS processor directives.                                                                                                   |
+| `jsProcessor`         | `readonly string[]`              | `["default:none","min:none"]` | AEM JS processor directives.                                                                                                    |
+| `build`               | `BuildOptions`                   | `{}`                          | Per-clientlib build overrides; layered over `AemConfig.build`.                                                                  |
+| `plugins`             | `PluginOption \| PluginOption[]` | _(inherits global)_           | Extra Vite plugins for this clientlib only (appended after the global `plugins`).                                               |
+| `vite`                | `UserConfig`                     | _(inherits global)_           | Per-clientlib deep Vite config override (merged after the global `vite`).                                                       |
 
 Array fields (`cssProcessor`, `jsProcessor`, `dependencies`, `embed`,
 `categories`, `resources`) are replaced wholesale rather than concatenated when
@@ -134,11 +134,11 @@ inherits `defaults`, then its own values, then its own `build` overrides.
 
 ```ts
 export default defineAemConfig({
-  clientLibRoot: "../clientlibs",
+  clientLibRoot: '../clientlibs',
   defaults: { allowProxy: true },
   clientlibs: [
-    { name: "site", entry: "src/main.ts", categories: ["aemvite.site"] },
-    { name: "admin", entry: "src/admin.ts", categories: ["aemvite.admin"] },
+    { name: 'site', entry: 'src/main.ts', categories: ['aemvite.site'] },
+    { name: 'admin', entry: 'src/admin.ts', categories: ['aemvite.admin'] },
   ],
 });
 ```
@@ -148,7 +148,7 @@ export default defineAemConfig({
 ```ts
 type BuildOptions = {
   minify?: boolean | { js?: boolean; css?: boolean };
-  sourcemap?: boolean | "inline" | "hidden";
+  sourcemap?: boolean | 'inline' | 'hidden';
   target?: string | string[];
 };
 ```
@@ -186,11 +186,9 @@ for the full on-disk layout, runtime resolution, and rationale.
 
 ```ts
 export default defineAemConfig({
-  clientLibRoot: "../clientlibs",
-  build: { sourcemap: "hidden", target: "es2020" },
-  clientlibs: [
-    { name: "site", entry: "src/main.ts", categories: ["aemvite.site"] },
-  ],
+  clientLibRoot: '../clientlibs',
+  build: { sourcemap: 'hidden', target: 'es2020' },
+  clientlibs: [{ name: 'site', entry: 'src/main.ts', categories: ['aemvite.site'] }],
 });
 ```
 
@@ -198,21 +196,21 @@ export default defineAemConfig({
 
 ```ts
 export default defineAemConfig({
-  clientLibRoot: "../clientlibs",
+  clientLibRoot: '../clientlibs',
   build: { minify: true },
   clientlibs: [
     {
-      name: "site",
-      entry: "src/main.ts",
-      categories: ["aemvite.site"],
+      name: 'site',
+      entry: 'src/main.ts',
+      categories: ['aemvite.site'],
       // CSS only — keep JS minified per the global block.
-      build: { minify: { css: false }, sourcemap: "inline" },
+      build: { minify: { css: false }, sourcemap: 'inline' },
     },
     {
-      name: "admin",
-      entry: "src/admin.ts",
-      categories: ["aemvite.admin"],
-      build: { target: ["es2018", "chrome70"] },
+      name: 'admin',
+      entry: 'src/admin.ts',
+      categories: ['aemvite.admin'],
+      build: { target: ['es2018', 'chrome70'] },
     },
   ],
 });
@@ -222,10 +220,10 @@ export default defineAemConfig({
 
 With no `build` set anywhere, resolved options match the mode baselines:
 
-| Mode | JS minify | CSS minify | sourcemap | target |
-|---|---|---|---|---|
-| `development` | off | off | `"inline"` | `"es2015"` |
-| `production` | on (esbuild) | on (esbuild) | off | `"es2015"` |
+| Mode          | JS minify    | CSS minify   | sourcemap  | target     |
+| ------------- | ------------ | ------------ | ---------- | ---------- |
+| `development` | off          | off          | `"inline"` | `"es2015"` |
+| `production`  | on (esbuild) | on (esbuild) | off        | `"es2015"` |
 
 Emitted clientlib descriptors (`.content.xml`, `js.txt`, `css.txt`) are
 unaffected by build options and remain byte-identical to the golden reference.
@@ -236,21 +234,21 @@ All exports from `@aemvite/aem-config`:
 
 ### Functions
 
-| Export | Signature | Effect |
-|---|---|---|
-| `defineAemConfig` | `(config: AemConfig) => AemConfig` | Typed identity helper for `aem.config.ts`. |
-| `loadAemConfig` | `(path: string) => Promise<ResolvedAemConfig>` | Load a `.ts`/`.mts`/`.cts` config via Vite's bundled esbuild (`loadConfigFromFile`), or a `.mjs`/`.js` config via dynamic `import()`. Merges defaults before returning. |
-| `mergeDefaults` | `(config: AemConfig) => ResolvedAemConfig` | Apply package + user `defaults` to every clientlib. |
-| `resolveBuildOptions` | `(mode: BuildMode, global?: BuildOptions, perClientlib?: BuildOptions) => ResolvedBuildOptions` | Resolve the three-layer build options for a single clientlib. Exported for tooling and tests. |
-| `buildClientlibs` | `(options: BuildClientlibsOptions) => Promise<{ config: ResolvedAemConfig; outDir: string }>` | Fully-orchestrated build: wires glob + resources plugins, runs one Vite library build per entry, names outputs after the clientlib, calls the clientlib emitter. Descriptor-only clientlibs skip the Vite build. |
+| Export                | Signature                                                                                       | Effect                                                                                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `defineAemConfig`     | `(config: AemConfig) => AemConfig`                                                              | Typed identity helper for `aem.config.ts`.                                                                                                                                                                       |
+| `loadAemConfig`       | `(path: string) => Promise<ResolvedAemConfig>`                                                  | Load a `.ts`/`.mts`/`.cts` config via Vite's bundled esbuild (`loadConfigFromFile`), or a `.mjs`/`.js` config via dynamic `import()`. Merges defaults before returning.                                          |
+| `mergeDefaults`       | `(config: AemConfig) => ResolvedAemConfig`                                                      | Apply package + user `defaults` to every clientlib.                                                                                                                                                              |
+| `resolveBuildOptions` | `(mode: BuildMode, global?: BuildOptions, perClientlib?: BuildOptions) => ResolvedBuildOptions` | Resolve the three-layer build options for a single clientlib. Exported for tooling and tests.                                                                                                                    |
+| `buildClientlibs`     | `(options: BuildClientlibsOptions) => Promise<{ config: ResolvedAemConfig; outDir: string }>`   | Fully-orchestrated build: wires glob + resources plugins, runs one Vite library build per entry, names outputs after the clientlib, calls the clientlib emitter. Descriptor-only clientlibs skip the Vite build. |
 
 ### Constants
 
-| Export | Type | Value |
-|---|---|---|
-| `defaults` | `Required<Pick<AemClientlib, "allowProxy" \| "serializationFormat" \| "cssProcessor" \| "jsProcessor">>` | Built-in per-clientlib defaults (see `AemClientlib` table). |
-| `modeBaselines` | `Record<BuildMode, BuildOptions>` | `development`: `{ minify: false, sourcemap: "inline" }`. `production`: `{ minify: { js: true, css: true }, sourcemap: false }`. |
-| `defaultTarget` | `string` | `"es2015"`. |
+| Export          | Type                                                                                                     | Value                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `defaults`      | `Required<Pick<AemClientlib, "allowProxy" \| "serializationFormat" \| "cssProcessor" \| "jsProcessor">>` | Built-in per-clientlib defaults (see `AemClientlib` table).                                                                     |
+| `modeBaselines` | `Record<BuildMode, BuildOptions>`                                                                        | `development`: `{ minify: false, sourcemap: "inline" }`. `production`: `{ minify: { js: true, css: true }, sourcemap: false }`. |
+| `defaultTarget` | `string`                                                                                                 | `"es2015"`.                                                                                                                     |
 
 ### Types
 
@@ -312,6 +310,7 @@ inject Vite plugins or deep config overrides without writing a custom build
 script.
 
 **When to use it:**
+
 - Inject a framework plugin (e.g. React, Vue, Lit) for all clientlibs.
 - Add `resolve.alias` entries so `@/` resolves to your `src/` root.
 - Turn on `build.cssCodeSplit` for one specific clientlib.
@@ -335,7 +334,7 @@ import myFrameworkPlugin from 'some-vite-plugin';
 
 export default defineAemConfig({
   clientLibRoot: '../ui.apps/.../clientlibs',
-  plugins: [myFrameworkPlugin()],          // runs for every clientlib
+  plugins: [myFrameworkPlugin()], // runs for every clientlib
   clientlibs: [
     { name: 'site', entry: 'src/main.ts', categories: ['myproject.site'] },
     { name: 'admin', entry: 'src/admin.ts', categories: ['myproject.admin'] },
@@ -353,7 +352,7 @@ export default defineAemConfig({
       alias: { '@': '/src/main/webpack' },
     },
   },
-  clientlibs: [ /* … */ ],
+  clientlibs: [/* … */],
 });
 ```
 
@@ -362,7 +361,7 @@ export default defineAemConfig({
 ```js
 export default defineAemConfig({
   clientLibRoot: '../ui.apps/.../clientlibs',
-  plugins: [sharedPlugin()],               // injected into every clientlib
+  plugins: [sharedPlugin()], // injected into every clientlib
   clientlibs: [
     {
       name: 'site',

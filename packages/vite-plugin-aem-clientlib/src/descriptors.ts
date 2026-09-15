@@ -37,9 +37,7 @@ function encodeArray(values: readonly string[]): string {
  */
 export function renderContentXml(def: ClientlibDefinition): string {
   if (!def.categories || def.categories.length === 0) {
-    throw new Error(
-      `renderContentXml: clientlib "${def.name}" requires at least one category`,
-    );
+    throw new Error(`renderContentXml: clientlib "${def.name}" requires at least one category`);
   }
   const cssProcessor = def.cssProcessor ?? [...DEFAULT_CSS_PROCESSOR];
   const jsProcessor = def.jsProcessor ?? [...DEFAULT_JS_PROCESSOR];

@@ -103,11 +103,7 @@ function codeSegments(source: string): CodeSegment[] {
         }
         break;
       }
-      if (
-        c === '/' &&
-        (source[i + 1] === '/' || source[i + 1] === '*') &&
-        source[i - 1] !== ':'
-      ) {
+      if (c === '/' && (source[i + 1] === '/' || source[i + 1] === '*') && source[i - 1] !== ':') {
         break;
       }
       i++;
@@ -172,9 +168,7 @@ export function expandStyleGlobsWithResult(
         expanded += 1;
         files += specs.length;
 
-        return specs
-          .map((s) => `@${atRule} ${quote}${s}${quote}${trailingPart};`)
-          .join('\n');
+        return specs.map((s) => `@${atRule} ${quote}${s}${quote}${trailingPart};`).join('\n');
       },
     );
 

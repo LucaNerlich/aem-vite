@@ -26,9 +26,7 @@ export interface AemClientlibPluginOptions {
  * clientlib, and then this plugin writes the descriptors and lays out files
  * at `closeBundle`. All real work lives in {@link emitClientlibs}.
  */
-export function aemClientlibPlugin(
-  options: AemClientlibPluginOptions,
-): VitePluginLike {
+export function aemClientlibPlugin(options: AemClientlibPluginOptions): VitePluginLike {
   return {
     name: 'aemvite:aem-clientlib',
     apply: 'build',

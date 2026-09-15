@@ -1,4 +1,4 @@
-import type { AemConfig } from "./types.js";
+import type { AemConfig } from './types.js';
 
 /**
  * Identity helper for typed `aem.config.ts` files.

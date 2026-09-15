@@ -5,23 +5,11 @@
  * `aem-clientlib-generator`. Reproduces `.content.xml`, `js.txt`, and
  * `css.txt` byte-for-byte against the captured archetype golden reference.
  */
-export {
-  renderContentXml,
-  renderTxt,
-  renderJsTxt,
-  renderCssTxt,
-} from './descriptors.js';
+export { renderContentXml, renderTxt, renderJsTxt, renderCssTxt } from './descriptors.js';
 export { classifyFile } from './layout.js';
-export {
-  emitClientlib,
-  emitClientlibs,
-  isValidClientlibName,
-} from './emit.js';
+export { emitClientlib, emitClientlibs, isValidClientlibName } from './emit.js';
 export { aemClientlibPlugin } from './plugin.js';
-export type {
-  AemClientlibPluginOptions,
-  VitePluginLike,
-} from './plugin.js';
+export type { AemClientlibPluginOptions, VitePluginLike } from './plugin.js';
 export type {
   ClientlibDefinition,
   SourceFile,

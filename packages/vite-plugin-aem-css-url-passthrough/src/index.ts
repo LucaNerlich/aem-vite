@@ -61,12 +61,12 @@ const URL_RE_CLOSE = String.raw`\1\s*\)`;
  * });
  * ```
  */
-export function aemCssUrlPassthrough(
-  options: AemCssUrlPassthroughOptions = {},
-): Plugin {
-  const dirs = (options.resourceDirs && options.resourceDirs.length > 0
-    ? options.resourceDirs
-    : DEFAULT_RESOURCE_DIRS) as readonly string[];
+export function aemCssUrlPassthrough(options: AemCssUrlPassthroughOptions = {}): Plugin {
+  const dirs = (
+    options.resourceDirs && options.resourceDirs.length > 0
+      ? options.resourceDirs
+      : DEFAULT_RESOURCE_DIRS
+  ) as readonly string[];
   const prefix = options.resourcePrefix ?? DEFAULT_RESOURCE_PREFIX;
   const escaped = dirs.map(escapeRegex).join('|');
   const urlRe = new RegExp(`${URL_RE_OPEN}${URL_RE_BODY}${URL_RE_CLOSE}`, 'g');

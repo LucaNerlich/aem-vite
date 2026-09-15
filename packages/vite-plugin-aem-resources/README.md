@@ -44,13 +44,13 @@ transformation pipeline — the plugin is intentionally dumb.
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { aemResources } from "@aemvite/vite-plugin-aem-resources";
+import { defineConfig } from 'vite';
+import { aemResources } from '@aemvite/vite-plugin-aem-resources';
 
 export default defineConfig({
   plugins: [
     aemResources({
-      from: "src/main/webpack/resources",
+      from: 'src/main/webpack/resources',
       // `to` is optional; defaults to "resources" inside the build outDir.
     }),
   ],
@@ -70,8 +70,8 @@ Produces (when the source has real files):
 
 ```ts
 aemResources([
-  { from: "src/main/webpack/resources" },
-  { from: "src/main/webpack/icons", to: "resources/icons" },
+  { from: 'src/main/webpack/resources' },
+  { from: 'src/main/webpack/icons', to: 'resources/icons' },
 ]);
 ```
 
@@ -80,8 +80,8 @@ Or with the explicit `entries` shape:
 ```ts
 aemResources({
   entries: [
-    { from: "src/main/webpack/resources" },
-    { from: "src/main/webpack/legal", to: "resources/legal" },
+    { from: 'src/main/webpack/resources' },
+    { from: 'src/main/webpack/legal', to: 'resources/legal' },
   ],
 });
 ```
@@ -93,11 +93,11 @@ Vite project `root`; relative `to` is resolved against the Vite build
 `outDir`.
 
 ```ts
-import path from "node:path";
+import path from 'node:path';
 
 aemResources({
-  from: path.resolve(__dirname, "src/main/webpack/resources"),
-  to: path.resolve(__dirname, "../ui.apps/.../clientlibs/clientlib-site/resources"),
+  from: path.resolve(__dirname, 'src/main/webpack/resources'),
+  to: path.resolve(__dirname, '../ui.apps/.../clientlibs/clientlib-site/resources'),
 });
 ```
 
@@ -105,25 +105,23 @@ aemResources({
 
 ### Plugin
 
-| Export | Signature | Notes |
-|---|---|---|
+| Export         | Signature                                  | Notes                                                                                   |
+| -------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
 | `aemResources` | `(options: AemResourcesOptions) => Plugin` | Vite plugin (also the package default export). `apply: "build"`, runs at `closeBundle`. |
 
 ### Types
 
 ```ts
 type AemResourcesOptions =
-  | ResourceCopy
-  | ResourceCopy[]
-  | { entries: ResourceCopy | ResourceCopy[] };
+  ResourceCopy | ResourceCopy[] | { entries: ResourceCopy | ResourceCopy[] };
 ```
 
 #### `ResourceCopy`
 
-| Field | Type | Default | Effect |
-|---|---|---|---|
-| `from` | `string` | — | Source directory. Absolute, or relative to the Vite project `root`. Missing directories are silently skipped. |
-| `to` | `string?` | `"resources"` | Destination directory. Absolute, or relative to the Vite build `outDir`. |
+| Field  | Type      | Default       | Effect                                                                                                        |
+| ------ | --------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `from` | `string`  | —             | Source directory. Absolute, or relative to the Vite project `root`. Missing directories are silently skipped. |
+| `to`   | `string?` | `"resources"` | Destination directory. Absolute, or relative to the Vite build `outDir`.                                      |
 
 ## Notes & caveats
 

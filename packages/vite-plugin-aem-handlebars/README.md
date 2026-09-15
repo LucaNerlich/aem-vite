@@ -39,8 +39,8 @@ Two concerns under one plugin, both mirroring legacy webpack behavior:
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { aemHandlebars } from "@aemvite/vite-plugin-aem-handlebars";
+import { defineConfig } from 'vite';
+import { aemHandlebars } from '@aemvite/vite-plugin-aem-handlebars';
 
 export default defineConfig({
   plugins: [aemHandlebars()],
@@ -53,14 +53,12 @@ Set the `handlebars` flag in your `aem.config.{ts,mjs}` and the plugin is
 auto-wired into every clientlib build:
 
 ```ts
-import { defineAemConfig } from "@aemvite/aem-config";
+import { defineAemConfig } from '@aemvite/aem-config';
 
 export default defineAemConfig({
-  clientLibRoot: "../ui.apps/.../clientlibs",
+  clientLibRoot: '../ui.apps/.../clientlibs',
   handlebars: true, // or: { precompileOptions: { strict: false } } to opt out
-  clientlibs: [
-    /* ... */
-  ],
+  clientlibs: [/* ... */],
 });
 ```
 
@@ -72,8 +70,8 @@ global is enabled.
 
 ### Plugin
 
-| Export | Signature | Notes |
-|---|---|---|
+| Export          | Signature                                    | Notes                                                            |
+| --------------- | -------------------------------------------- | ---------------------------------------------------------------- |
 | `aemHandlebars` | `(options?: AemHandlebarsOptions) => Plugin` | Vite plugin (also the package default export). `enforce: "pre"`. |
 
 ### Types
@@ -107,7 +105,7 @@ export default Handlebars.template(<precompiled program>);
 So consumers keep the webpack-era ergonomics:
 
 ```ts
-import Foo from "./foo.template.hbs";
+import Foo from './foo.template.hbs';
 const html = Foo({ data });
 ```
 
