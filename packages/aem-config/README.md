@@ -95,14 +95,14 @@ Wire it into `package.json`:
 
 ### `AemConfig`
 
-| Field           | Type                             | Default  | Notes                                                                                                                     |
-| --------------- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `clientLibRoot` | `string`                         | —        | Output root for emitted `clientlib-<name>/` folders. Absolute or relative to the config file.                             |
-| `clientlibs`    | `AemClientlib[]`                 | —        | One entry per clientlib folder.                                                                                           |
-| `defaults`      | `Partial<AemClientlib>`          | `{}`     | Per-clientlib defaults merged into every entry (per-clientlib values win).                                                |
-| `build`         | `BuildOptions`                   | `{}`     | Global build overrides; layered under per-clientlib `build` (see below).                                                  |
-| `plugins`       | `PluginOption \| PluginOption[]` | _(none)_ | Extra Vite plugins injected into **every** clientlib build (after the built-in glob + resources plugins).                 |
-| `vite`          | `UserConfig`                     | _(none)_ | Deep Vite config merged (via `mergeConfig`) into every clientlib build — runs after per-entry wiring and after `plugins`. |
+| Field           | Type                                   | Default  | Notes                                                                                                                                                                                                         |
+| --------------- | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clientLibRoot` | `string`                               | —        | Output root for emitted `clientlib-<name>/` folders. Absolute or relative to the config file.                                                                                                                 |
+| `clientlibs`    | `AemClientlib[]`                       | —        | One entry per clientlib folder.                                                                                                                                                                               |
+| `defaults`      | `Omit<Partial<AemClientlib>, "build">` | `{}`     | Per-clientlib defaults merged into every entry (per-clientlib values win). Excludes `build` — set global build defaults via the top-level `build` field instead; it's rejected with a clear error if present. |
+| `build`         | `BuildOptions`                         | `{}`     | Global build overrides; layered under per-clientlib `build` (see below).                                                                                                                                      |
+| `plugins`       | `PluginOption \| PluginOption[]`       | _(none)_ | Extra Vite plugins injected into **every** clientlib build (after the built-in glob + resources plugins).                                                                                                     |
+| `vite`          | `UserConfig`                           | _(none)_ | Deep Vite config merged (via `mergeConfig`) into every clientlib build — runs after per-entry wiring and after `plugins`.                                                                                     |
 
 ### `AemClientlib`
 

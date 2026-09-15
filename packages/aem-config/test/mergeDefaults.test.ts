@@ -180,4 +180,14 @@ describe('mergeDefaults (validation and isolation)', () => {
       }),
     ).toThrow(/Invalid clientlib entry/);
   });
+
+  it('rejects config.defaults.build', () => {
+    expect(() =>
+      mergeDefaults({
+        clientLibRoot: './clientlibs',
+        defaults: { build: { minify: true } } as never,
+        clientlibs: [{ name: 'site', entry: 'a.ts', categories: ['a'] }],
+      }),
+    ).toThrow(/defaults\.build/);
+  });
 });

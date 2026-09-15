@@ -12,12 +12,16 @@ import type { AemClientlib, AemConfig, ResolvedAemClientlib, ResolvedAemConfig }
  * Array fields (`cssProcessor`, `jsProcessor`, `dependencies`, `embed`,
  * `categories`, `resources`) are replaced wholesale rather than concatenated.
  *
+ * `build` is excluded from `config.defaults` (see `assertNoDefaultsBuild`) —
+ * use the top-level `config.build` field for global build defaults instead.
+ *
  * Clientlib entries are validated here — every config passes through this
  * function (both `loadAemConfig` and direct API consumers) — so invalid
  * names fail fast before any build or filesystem work.
  */
 export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
   assertValidClientlibs(config.clientlibs);
+  assertNoDefaultsBuild(config.defaults);
   const userDefaults = config.defaults ?? {};
   const clientlibs = config.clientlibs.map((clientlib) =>
     resolveClientlib(clientlib, userDefaults),
@@ -53,6 +57,24 @@ function isValidClientlibName(name: string): boolean {
   );
 }
 
+/**
+ * `defaults.build` would be merged into each clientlib's `build` via a
+ * shallow spread in `resolveClientlib`, which replaces the whole `build`
+ * object rather than layering it field-by-field — so it would silently
+ * disappear the moment a clientlib sets any `build` field of its own.
+ * Rejected outright: use the top-level `AemConfig.build` field instead,
+ * which `resolveBuildOptions` layers correctly under per-clientlib `build`.
+ */
+function assertNoDefaultsBuild(userDefaults: AemConfig['defaults']): void {
+  if (userDefaults && 'build' in userDefaults) {
+    throw new Error(
+      "'defaults.build' is not supported: use the top-level 'build' field " +
+        'on the config instead, which is layered correctly under ' +
+        "per-clientlib 'build' overrides.",
+    );
+  }
+}
+
 function assertValidClientlibs(clientlibs: AemClientlib[]): void {
   const seen = new Set<string>();
   for (const clientlib of clientlibs) {
@@ -78,7 +100,7 @@ function assertValidClientlibs(clientlibs: AemClientlib[]): void {
 
 function resolveClientlib(
   clientlib: AemClientlib,
-  userDefaults: Partial<AemClientlib>,
+  userDefaults: NonNullable<AemConfig['defaults']>,
 ): ResolvedAemClientlib {
   const merged: AemClientlib = {
     ...defaults,

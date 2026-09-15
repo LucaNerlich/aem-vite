@@ -112,8 +112,15 @@ export interface AemConfig {
   clientLibRoot: string;
   /** Clientlib definitions. */
   clientlibs: AemClientlib[];
-  /** Per-clientlib defaults merged into each entry of `clientlibs`. */
-  defaults?: Partial<AemClientlib>;
+  /**
+   * Per-clientlib defaults merged into each entry of `clientlibs`. Excludes
+   * `build` — use the top-level `build` field for global build defaults,
+   * which is layered correctly (per-field) under per-clientlib `build`.
+   * `defaults.build` would only ever replace a clientlib's `build` wholesale,
+   * not merge field-by-field, so it is rejected rather than silently doing
+   * the wrong thing.
+   */
+  defaults?: Omit<Partial<AemClientlib>, 'build'>;
   /** Global build options applied to every clientlib (overridden per-clientlib). */
   build?: BuildOptions;
   /**
