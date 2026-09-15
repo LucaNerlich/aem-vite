@@ -6,6 +6,11 @@ this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-15
+
+### Removed
+- **Breaking:** dropped the redundant `export default aemViteGlob` alongside the named export. Only the named export (`import { aemViteGlob } from '@aemvite/vite-plugin-glob'`) was ever documented or used internally.
+
 ## [0.8.0] - 2026-09-15
 
 ### Changed

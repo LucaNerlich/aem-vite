@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-09-15
+
+### Removed
+- `@aemvite/vite-plugin-glob`, `@aemvite/vite-plugin-aem-resources`, `@aemvite/vite-plugin-aem-css-url-passthrough`, and `@aemvite/vite-plugin-aem-handlebars` no longer export a `default` alongside the named export (`aemViteGlob`, `aemResources`, `aemCssUrlPassthrough`, `aemHandlebars`). Only the named export was ever documented or used internally; import via `import { aemViteGlob } from '@aemvite/vite-plugin-glob'` (etc.) if you were relying on the default import form.
+
 ## [0.9.0] - 2026-09-15
 
 ### Fixed
