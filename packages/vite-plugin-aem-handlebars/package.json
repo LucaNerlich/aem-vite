@@ -1,6 +1,6 @@
 {
   "name": "@aemvite/vite-plugin-aem-handlebars",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Vite plugin that precompiles `.template.hbs` files into Handlebars runtime functions and stubs Storybook/non-template `.hbs` partials, mirroring webpack handlebars-loader + IgnorePlugin for AEM clientlib builds.",
   "keywords": [
     "aem",

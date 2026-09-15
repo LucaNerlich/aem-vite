@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-09-15
+
+### Fixed
+- `@aemvite/aem-config`: `config.defaults.build` no longer silently disappears the moment a clientlib sets its own `build` override. It's now rejected outright — at the type level and at runtime for untyped/`.mjs` configs — in favor of the top-level `config.build` field, which is already layered correctly (mode baseline → global → per-clientlib).
+
 ## [0.8.0] - 2026-09-15
 
 ### Changed
