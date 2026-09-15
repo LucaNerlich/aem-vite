@@ -148,5 +148,3 @@ async function loadHandlebars(): Promise<HandlebarsLike> {
     );
   }
 }
-
-export default aemHandlebars;

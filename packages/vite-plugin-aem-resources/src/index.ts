@@ -160,5 +160,3 @@ export function aemResources(options: AemResourcesOptions): Plugin {
     },
   };
 }
-
-export default aemResources;

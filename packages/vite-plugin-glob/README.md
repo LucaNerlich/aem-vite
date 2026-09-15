@@ -129,9 +129,9 @@ becomes (assuming `components/button.scss` and `components/card.scss` exist):
 
 ### Plugin
 
-| Export        | Signature                                  | Notes                                                                                   |
-| ------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `aemViteGlob` | `(options?: AemViteGlobOptions) => Plugin` | Vite plugin (also the package default export). `enforce: "pre"`, runs in `transform()`. |
+| Export        | Signature                                  | Notes                                                 |
+| ------------- | ------------------------------------------ | ----------------------------------------------------- |
+| `aemViteGlob` | `(options?: AemViteGlobOptions) => Plugin` | Vite plugin. `enforce: "pre"`, runs in `transform()`. |
 
 #### `AemViteGlobOptions`
 

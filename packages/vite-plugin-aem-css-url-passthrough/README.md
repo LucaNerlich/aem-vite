@@ -77,9 +77,9 @@ global value.
 
 ### Plugin
 
-| Export                 | Signature                                           | Notes                                                                                   |
-| ---------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `aemCssUrlPassthrough` | `(options?: AemCssUrlPassthroughOptions) => Plugin` | Vite plugin (also the package default export). `apply: "build"`, runs at `writeBundle`. |
+| Export                 | Signature                                           | Notes                                                 |
+| ---------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| `aemCssUrlPassthrough` | `(options?: AemCssUrlPassthroughOptions) => Plugin` | Vite plugin. `apply: "build"`, runs at `writeBundle`. |
 
 ### Types
 

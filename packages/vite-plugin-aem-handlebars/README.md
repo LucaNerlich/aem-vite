@@ -70,9 +70,9 @@ global is enabled.
 
 ### Plugin
 
-| Export          | Signature                                    | Notes                                                            |
-| --------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| `aemHandlebars` | `(options?: AemHandlebarsOptions) => Plugin` | Vite plugin (also the package default export). `enforce: "pre"`. |
+| Export          | Signature                                    | Notes                          |
+| --------------- | -------------------------------------------- | ------------------------------ |
+| `aemHandlebars` | `(options?: AemHandlebarsOptions) => Plugin` | Vite plugin. `enforce: "pre"`. |
 
 ### Types
 

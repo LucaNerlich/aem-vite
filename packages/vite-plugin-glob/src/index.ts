@@ -79,6 +79,5 @@ export function aemViteGlob(options: AemViteGlobOptions = {}): Plugin {
   };
 }
 
-export default aemViteGlob;
 export { expandStyleGlobs, expandStyleGlobsWithResult, hasGlobMagic } from './expand.js';
 export type { ExpandOptions, ExpandResult } from './expand.js';

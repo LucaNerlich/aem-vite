@@ -105,9 +105,9 @@ aemResources({
 
 ### Plugin
 
-| Export         | Signature                                  | Notes                                                                                   |
-| -------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `aemResources` | `(options: AemResourcesOptions) => Plugin` | Vite plugin (also the package default export). `apply: "build"`, runs at `closeBundle`. |
+| Export         | Signature                                  | Notes                                                 |
+| -------------- | ------------------------------------------ | ----------------------------------------------------- |
+| `aemResources` | `(options: AemResourcesOptions) => Plugin` | Vite plugin. `apply: "build"`, runs at `closeBundle`. |
 
 ### Types
 
