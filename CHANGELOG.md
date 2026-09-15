@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-09-15
+
+### Removed
+- `@aemvite/vite-plugin-glob`'s `ExpandOptions.cwd`/`sort` fields are gone — neither was ever set by the plugin itself or exercised by any test. `expandStyleGlobs`/`expandStyleGlobsWithResult` no longer take an options argument at all; glob resolution always uses `dirname(fromFile)` and results are always sorted lexicographically.
+
+### Changed
+- Internal cleanup, no behavior change: `@aemvite/vite-plugin-aem-resources` and `@aemvite/aem-config` each dropped a hand-duplicated helper in favor of reusing existing logic (`copyTree`'s own file count instead of a separate pre-check walk; `isValidClientlibName` imported from `@aemvite/vite-plugin-aem-clientlib` instead of a second copy).
+
 ## [0.10.0] - 2026-09-15
 
 ### Removed
