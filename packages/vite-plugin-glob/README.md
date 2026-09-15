@@ -32,8 +32,8 @@ Vite (and Sass / esbuild) does not natively understand glob specifiers in
 `@import` / `@use` / `@forward`. This plugin runs **before** Vite's CSS
 transforms, finds `@`-rules whose specifier contains glob magic characters
 (`* ? [ ] { } ! ( )`), resolves them with `tinyglobby` relative to the
-source file's directory, sorts the matches lexicographically (configurable),
-and rewrites the single `@`-rule into one `@`-rule per matched file.
+source file's directory, sorts the matches lexicographically, and rewrites
+the single `@`-rule into one `@`-rule per matched file.
 
 It does **not** touch:
 
@@ -141,18 +141,11 @@ becomes (assuming `components/button.scss` and `components/card.scss` exist):
 
 ### Functions (also exported from `@aemvite/vite-plugin-glob/expand`)
 
-| Export                       | Signature                                                                     | Notes                                                                   |
-| ---------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `expandStyleGlobs`           | `(source: string, fromFile: string, options?: ExpandOptions) => string`       | Pure transform. Returns the rewritten source.                           |
-| `expandStyleGlobsWithResult` | `(source: string, fromFile: string, options?: ExpandOptions) => ExpandResult` | Same as above, but returns `{ code, expanded, files }`.                 |
-| `hasGlobMagic`               | `(spec: string) => boolean`                                                   | True if `spec` contains any glob magic character (`* ? [ ] { } ! ( )`). |
-
-#### `ExpandOptions`
-
-| Field  | Type                               | Default                 | Effect                                                            |
-| ------ | ---------------------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `cwd`  | `string`                           | `dirname(fromFile)`     | Base directory for resolving relative glob patterns.              |
-| `sort` | `(a: string, b: string) => number` | lexicographic ascending | Comparator used to order the matched files inside each expansion. |
+| Export                       | Signature                                            | Notes                                                                   |
+| ---------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| `expandStyleGlobs`           | `(source: string, fromFile: string) => string`       | Pure transform. Returns the rewritten source.                           |
+| `expandStyleGlobsWithResult` | `(source: string, fromFile: string) => ExpandResult` | Same as above, but returns `{ code, expanded, files }`.                 |
+| `hasGlobMagic`               | `(spec: string) => boolean`                          | True if `spec` contains any glob magic character (`* ? [ ] { } ! ( )`). |
 
 #### `ExpandResult`
 
@@ -164,10 +157,9 @@ becomes (assuming `components/button.scss` and `components/card.scss` exist):
 
 ## Notes & caveats
 
-- **Deterministic ordering.** Matches are sorted lexicographically by default,
+- **Deterministic ordering.** Matches are always sorted lexicographically,
   so the same source tree always produces the same output (important for
-  CSS specificity and for byte-stable builds). Pass a custom `sort` if you
-  need a different order.
+  CSS specificity and for byte-stable builds).
 - **`@-rules` only.** The regex targets `@import` / `@use` / `@forward`. Other
   Sass / CSS constructs are not rewritten.
 - **Glob magic gate.** Specifiers without any of `* ? [ ] { } ! ( )` are left

@@ -7,13 +7,6 @@ const MAGIC_RE = /[*?[\]{}!()]/;
 // whitespace — i.e. the position right before a specifier string.
 const AT_RULE_PREFIX_RE = /@(?:import|use|forward)\s+$/;
 
-export interface ExpandOptions {
-  /** Base directory for resolving relative glob patterns. Defaults to dirname(fromFile). */
-  cwd?: string;
-  /** Sort comparator for the resulting per-file specifiers. Defaults to lexicographic. */
-  sort?: (a: string, b: string) => number;
-}
-
 export interface ExpandResult {
   code: string;
   /** Number of glob @-rules that were expanded. */
@@ -123,21 +116,12 @@ function codeSegments(source: string): CodeSegment[] {
  * - Does NOT rewrite `url(...)` paths (parity with `css-loader { url: false }`).
  * - Output file list is deterministically sorted (lexicographic by default).
  */
-export function expandStyleGlobs(
-  source: string,
-  fromFile: string,
-  options: ExpandOptions = {},
-): string {
-  return expandStyleGlobsWithResult(source, fromFile, options).code;
+export function expandStyleGlobs(source: string, fromFile: string): string {
+  return expandStyleGlobsWithResult(source, fromFile).code;
 }
 
-export function expandStyleGlobsWithResult(
-  source: string,
-  fromFile: string,
-  options: ExpandOptions = {},
-): ExpandResult {
-  const baseDir = options.cwd ?? path.dirname(fromFile);
-  const sortFn = options.sort ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+export function expandStyleGlobsWithResult(source: string, fromFile: string): ExpandResult {
+  const baseDir = path.dirname(fromFile);
   let expanded = 0;
   let files = 0;
   const unmatched: string[] = [];
@@ -160,7 +144,7 @@ export function expandStyleGlobsWithResult(
           return match;
         }
 
-        const specs = matches.map(toRelativeSpec).sort(sortFn);
+        const specs = matches.map(toRelativeSpec).sort();
 
         const trailingTrim = trailing.trim();
         const trailingPart = trailingTrim ? ` ${trailingTrim}` : '';

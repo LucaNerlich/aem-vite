@@ -31,48 +31,6 @@ function normalizeEntries(options: AemResourcesOptions): ResourceCopy[] {
 }
 
 /**
- * Recursively count "real" files under `src`, skipping placeholder
- * markers like `.gitkeep`. Symlinks are followed (`stat`), so symlinked
- * files and directories count as real content. Returns 0 if `src` is
- * missing or empty.
- */
-async function countRealFiles(src: string, seen: Set<string> = new Set()): Promise<number> {
-  let entries;
-  try {
-    entries = await fs.readdir(src, { withFileTypes: true });
-  } catch {
-    return 0;
-  }
-  let count = 0;
-  for (const entry of entries) {
-    const child = path.join(src, entry.name);
-    // Follow symlinks but never revisit a real path: `stat` resolves links,
-    // and the seen-set breaks symlink cycles (a link pointing at an ancestor
-    // would otherwise recurse forever).
-    let real = child;
-    try {
-      real = await fs.realpath(child);
-    } catch {
-      continue; // broken symlink — nothing to copy
-    }
-    if (seen.has(real)) continue;
-    seen.add(real);
-    let st;
-    try {
-      st = await fs.stat(child);
-    } catch {
-      continue;
-    }
-    if (st.isDirectory()) {
-      count += await countRealFiles(child, seen);
-    } else if (st.isFile() && !PLACEHOLDER_NAMES.has(entry.name)) {
-      count += 1;
-    }
-  }
-  return count;
-}
-
-/**
  * Copy `src` → `dest` recursively. Skips `.gitkeep` placeholders and
  * directories that contain only placeholders, so empty trees never
  * materialize on disk. Symlinked files and directories are copied (the
@@ -148,14 +106,13 @@ export function aemResources(options: AemResourcesOptions): Plugin {
         const toRel = entry.to ?? DEFAULT_TO;
         const toAbs = path.isAbsolute(toRel) ? toRel : path.resolve(outDir, toRel);
 
-        if ((await countRealFiles(fromAbs)) === 0) {
+        const copied = await copyTree(fromAbs, toAbs);
+        if (copied === 0) {
           (this as { warn?: (msg: string) => void } | undefined)?.warn?.(
             `aemvite:aem-resources: '${fromAbs}' contains no files — ` +
               `nothing was copied to '${toRel}'`,
           );
-          continue;
         }
-        await copyTree(fromAbs, toAbs);
       }
     },
   };

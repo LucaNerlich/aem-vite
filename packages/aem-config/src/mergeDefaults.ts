@@ -1,4 +1,4 @@
-import { basename } from 'node:path';
+import { isValidClientlibName } from '@aemvite/vite-plugin-aem-clientlib';
 import { defaults } from './defaults.js';
 import type { AemClientlib, AemConfig, ResolvedAemClientlib, ResolvedAemConfig } from './types.js';
 
@@ -37,24 +37,6 @@ export function mergeDefaults(config: AemConfig): ResolvedAemConfig {
     ...(config.plugins !== undefined ? { plugins: config.plugins } : {}),
     ...(config.vite !== undefined ? { vite: config.vite } : {}),
   };
-}
-
-/**
- * Whether `name` is safe to use as a `clientlib-<name>` folder name:
- * non-empty, no path separators, and no `.`/`..` segments. Mirrors
- * `isValidClientlibName` in `@aemvite/vite-plugin-aem-clientlib` (kept local
- * so the packages stay decoupled).
- */
-function isValidClientlibName(name: string): boolean {
-  return (
-    typeof name === 'string' &&
-    name.length > 0 &&
-    name !== '.' &&
-    name !== '..' &&
-    !name.includes('/') &&
-    !name.includes('\\') &&
-    basename(name) === name
-  );
 }
 
 /**
