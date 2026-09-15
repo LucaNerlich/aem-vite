@@ -6,6 +6,15 @@ documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-15
+
+### Changed
+- Build migrated from `vp pack` ([Vite+](https://viteplus.dev)) to standalone [`tsdown`](https://tsdown.dev); tests migrated from vite-plus's bundled Vitest to a standalone `vitest` devDependency; lint migrated from `vp lint` to standalone `oxlint` (type-aware via `oxlint-tsgolint`), invoked as `oxlint -c ../../.oxlintrc.json .`. `vite-plus` dropped from `devDependencies` entirely. No change to build output.
+- The build output directory tree is now scanned recursively for `.css` files (including nested `assets/` subdirectories), instead of only the top level.
+
+### Added
+- New `resourcePrefix` option: the path prefix written in front of the rewritten `resources/<sub>/<file>` tail. Default unchanged (`"../"`).
+
 ## [0.7.0] - 2026-07-02
 
 ### Changed

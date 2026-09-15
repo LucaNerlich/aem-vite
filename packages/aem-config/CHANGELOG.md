@@ -5,6 +5,18 @@ All notable changes to **@aemvite/aem-config** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-15
+
+### Changed
+- Build migrated from `vp pack` ([Vite+](https://viteplus.dev)) to standalone [`tsdown`](https://tsdown.dev); tests migrated from vite-plus's bundled Vitest to a standalone `vitest` devDependency; lint migrated from `vp lint` to standalone `oxlint` (type-aware via `oxlint-tsgolint`), configured by the root `.oxlintrc.json` and invoked as `oxlint -c ../../.oxlintrc.json .`. `vite-plus` dropped from `devDependencies` entirely. No change to build output — `main`/`types`/`bin` still point at `dist/index.mjs`/`dist/index.d.mts`/`dist/cli.mjs`.
+- Cross-dependency ranges on the five plugin packages bumped to `^0.8.0`.
+- `outDir` is now validated against the config's own directory: refuses to build if `outDir` would contain the `aem.config.*` file, since that risked deleting project sources.
+- `loadAemConfig` threads the build `mode` through to function-style configs (`export default ({ mode }) => ...`).
+
+### Added
+- Stale `clientlib-*` output folders (no longer present in the config) are now removed from `clientLibRoot` after each build, so renamed/removed clientlibs stop shipping to AEM.
+- Clientlib names are validated (via `mergeDefaults`) to reject path traversal and invalid folder names before any build or filesystem work runs.
+
 ## [0.7.0] - 2026-07-02
 
 ### Changed

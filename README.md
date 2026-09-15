@@ -204,7 +204,7 @@ A published-package consumer's `ui.frontend/package.json` ends up this small:
 {
   "type": "module",
   "devDependencies": {
-    "@aemvite/aem-config": "^0.7.0", // pulls the five plugin packages + esbuild peer
+    "@aemvite/aem-config": "^0.8.0", // pulls the five plugin packages + esbuild peer
     "sass": "^1.77.0",
     "vite": "^8.1.0",
     "vitest": "^4.1.9",
@@ -664,8 +664,8 @@ for every exposed API:
 
 ## Status & scope
 
-- **`@aemvite/aem-config`**: `0.7.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
-- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.7.0`.
+- **`@aemvite/aem-config`**: `0.8.0` — self-sufficient orchestrator, `plugins`/`vite` passthrough, all five plugin packages now transitive deps.
+- **`@aemvite/vite-plugin-aem-clientlib`**, **`@aemvite/vite-plugin-glob`**, **`@aemvite/vite-plugin-aem-resources`**, **`@aemvite/vite-plugin-aem-css-url-passthrough`**, **`@aemvite/vite-plugin-aem-handlebars`**: `0.8.0`.
 - Toolchain is plain npm + Vite: all six packages build with [`tsdown`](https://tsdown.dev) (Rolldown) and test with [Vitest](https://vitest.dev); `vite` itself stays a direct dependency where the packages need its programmatic Node API or types.
 - `vite-plugin-aem-clientlib` asserts byte-identical descriptors against a captured golden reference via `Buffer.equals()`.
 - The reference `aemvite/ui.frontend` module has been migrated and verified —

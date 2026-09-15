@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-09-15
+
+### Changed
+- **Toolchain moved off [Vite+](https://viteplus.dev)**: all six packages now build with standalone [`tsdown`](https://tsdown.dev), test with standalone [Vitest](https://vitest.dev), and lint with standalone [Oxlint](https://oxc.rs/docs/guide/usage/linter) (type-aware via `oxlint-tsgolint`, configured by a single root `.oxlintrc.json`). No change to build output or the byte-identical clientlib descriptor contract — verified against the golden reference and a live `aem-build --mode prod` run.
+- `@aemvite/vite-plugin-aem-handlebars` now defaults `precompileOptions.strict` to `true` (was `false`) — templates referencing undefined properties now throw at render time instead of silently rendering empty. Opt back into the old behavior with `handlebars: { precompileOptions: { strict: false } }`.
+- `@aemvite/vite-plugin-aem-css-url-passthrough` now scans the entire build output directory tree recursively (including nested `assets/` subdirectories), not just the top level, and supports a configurable `resourcePrefix` (default unchanged: `"../"`).
+
+### Added
+- **Real formatting, repo-wide, for the first time**, via [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) (root `.oxfmtrc.json`, `npm run format` / `format:check`).
+- `@aemvite/aem-config` now removes stale `clientlib-*` output folders that are no longer part of the config, so renamed/removed clientlibs stop shipping to AEM. Also guards against an `outDir` that contains the config file itself (previously risked deleting project sources), and threads the build `mode` through to function-style configs.
+- `@aemvite/vite-plugin-glob` now skips glob `@import`/`@use`/`@forward` specifiers inside comments and string literals, warns when a glob specifier matches zero files, and auto-invalidates importing modules in dev/watch when a matched file is added or removed.
+- `@aemvite/vite-plugin-aem-resources` now follows symlinks (with a cycle guard) when counting real files under a `resources/` source tree, and warns when a configured source is empty.
+
+### Fixed
+- **Hardened `@aemvite/vite-plugin-aem-clientlib` descriptor emission**: clientlib names and file basenames are now validated to reject path traversal (`..`, absolute paths, path separators), XML attribute values are escaped, and clientlib output is staged and swapped in atomically so a failed emit never leaves a half-written or corrupted clientlib.
+
 ## [0.7.0] - 2026-07-02
 
 ### Changed

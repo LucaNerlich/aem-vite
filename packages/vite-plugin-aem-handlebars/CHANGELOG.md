@@ -6,6 +6,12 @@ documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-15
+
+### Changed
+- Build migrated from `vp pack` ([Vite+](https://viteplus.dev)) to standalone [`tsdown`](https://tsdown.dev); tests migrated from vite-plus's bundled Vitest to a standalone `vitest` devDependency; lint migrated from `vp lint` to standalone `oxlint` (type-aware via `oxlint-tsgolint`), invoked as `oxlint -c ../../.oxlintrc.json .`. `vite-plus` dropped from `devDependencies` entirely. No change to build output.
+- **Breaking:** `precompileOptions.strict` now defaults to `true` (was `false`). Templates that reference an undefined property now throw at render time instead of silently rendering empty. Opt back into the old behavior with `handlebars: { precompileOptions: { strict: false } }`.
+
 ## [0.7.0] - 2026-07-02
 
 ### Changed
